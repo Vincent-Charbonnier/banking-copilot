@@ -1,6 +1,6 @@
 apiVersion: v2
 name: retail-banking-copilot
-description: A Helm chart for the Retail Banking Advisor Copilot demo with optional ChromaDB and Istio routing.
+description: A Helm chart for the Retail Banking Advisor Copilot demo with external ChromaDB and optional Istio routing.
 type: application
 version: 0.1.2
 appVersion: "0.1.2"
