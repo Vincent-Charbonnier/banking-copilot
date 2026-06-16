@@ -73,6 +73,8 @@ spec:
               value: {{ .Values.chroma.database | quote }}
             - name: DATA_PATH
               value: /app/data
+            - name: RUNTIME_SETTINGS_PATH
+              value: {{ .Values.env.runtimeSettingsPath | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.env.logLevel | quote }}
             - name: ANONYMIZED_TELEMETRY

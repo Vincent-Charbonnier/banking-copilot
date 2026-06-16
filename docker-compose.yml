@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.1
+    image: vinchar/retail-banking-copilot:0.1.2
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
     ports:
@@ -19,6 +19,7 @@ services:
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
       CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
       DATA_PATH: /app/data
+      RUNTIME_SETTINGS_PATH: /app/data/config/runtime_settings.json
       API_BASE_URL: http://localhost:8080
       ANONYMIZED_TELEMETRY: "False"
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
@@ -34,7 +35,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.1
+    image: vinchar/retail-banking-copilot:0.1.2
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]
     ports:

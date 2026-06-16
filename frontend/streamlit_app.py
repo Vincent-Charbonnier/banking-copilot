@@ -431,7 +431,7 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
             }
             updated = api_put("/settings", payload)
             st.session_state.runtime_settings = updated
-            st.success("Settings updated.")
+            st.success("Settings saved. They will be reused after backend restarts.")
 
     with right:
         st.markdown('<div class="section-title">Active Backend State</div>', unsafe_allow_html=True)

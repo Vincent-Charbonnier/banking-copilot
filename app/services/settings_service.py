@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 from pathlib import Path
 
@@ -9,14 +11,25 @@ from app.config.settings import settings
 from app.models.schemas import RuntimeSettings, RuntimeSettingsUpdate
 from app.rag.vector_store import get_embedding_model
 
+logger = logging.getLogger(__name__)
+
 
 def get_runtime_settings() -> RuntimeSettings:
     """Return the current process settings without exposing the API key."""
     return RuntimeSettings.model_validate(settings.as_public_dict())
 
 
+def persist_runtime_settings() -> None:
+    """Write current runtime settings to durable local storage."""
+    settings.runtime_settings_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = settings.runtime_settings_path.with_suffix(".tmp")
+    temp_path.write_text(json.dumps(settings.as_persisted_dict(), indent=2), encoding="utf-8")
+    temp_path.replace(settings.runtime_settings_path)
+    logger.info("Persisted runtime settings to %s", settings.runtime_settings_path)
+
+
 def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
-    """Apply runtime settings for the current FastAPI process."""
+    """Apply and persist runtime settings for the current FastAPI process."""
     settings.llm_base_url = update.llm_base_url.rstrip("/")
     settings.llm_model = update.llm_model
     if update.llm_api_key:
@@ -45,4 +58,5 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     os.environ["LLM_TIMEOUT_SECONDS"] = str(settings.llm_timeout_seconds)
 
     get_embedding_model.cache_clear()
+    persist_runtime_settings()
     return get_runtime_settings()

@@ -3,6 +3,8 @@ set -euo pipefail
 
 export PYTHONPATH="${PYTHONPATH:-.}:."
 
+eval "$(python scripts/export_runtime_settings.py)"
+
 if [ ! -f "data/customers/customer_001.json" ] || [ ! -f "data/products/Auto_Loan_Plus.pdf" ] || [ ! -f "data/policies/Lending_Policy.pdf" ]; then
   echo "Demo data missing. Generating fictional data..."
   python scripts/generate_demo_data.py

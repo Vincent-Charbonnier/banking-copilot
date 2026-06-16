@@ -7,6 +7,7 @@ __pycache__/
 .ruff_cache/
 
 data/customers/*.json
+data/config/*.json
 data/interactions/*.json
 data/products/*.pdf
 data/policies/*.pdf

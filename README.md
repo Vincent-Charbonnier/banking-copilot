@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.1`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.2`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -119,7 +119,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.1 \
+  --set image.tag=0.1.2 \
   --set chroma.mode=http \
   --set chroma.host=YOUR_EXISTING_CHROMADB_SERVICE \
   --set chroma.port=8000 \
@@ -156,6 +156,7 @@ CHROMA_SSL=false
 CHROMA_TENANT=default_tenant
 CHROMA_DATABASE=default_database
 DATA_PATH=./data
+RUNTIME_SETTINGS_PATH=./data/config/runtime_settings.json
 API_BASE_URL=http://localhost:8080
 ```
 
@@ -182,7 +183,9 @@ The Streamlit app also includes a `Settings` tab where you can update these runt
 - LLM token
 - LLM timeout
 
-Settings changed in the UI apply to the running FastAPI process only. The token is never returned to the browser; leaving the token field blank keeps the existing token. After changing the embedding model or ChromaDB path, click `Reindex documents` in the Settings tab to rebuild the product and policy collections.
+Settings changed in the UI are applied to the running FastAPI process and persisted to `RUNTIME_SETTINGS_PATH`. In Docker this defaults to `/app/data/config/runtime_settings.json`, which is stored in the `demo_data` volume. In Helm this path is mounted on the data PVC.
+
+The token is saved in that local settings file when you enter one, but it is never returned to the browser. Leaving the token field blank keeps the existing token. After changing the embedding model, ChromaDB mode, or ChromaDB location, click `Reindex documents` in the Settings tab to rebuild the product and policy collections.
 
 ## HPE Private Cloud AI Deployment Notes
 
