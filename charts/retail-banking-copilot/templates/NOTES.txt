@@ -1,0 +1,17 @@
+Retail Banking Advisor Copilot has been installed.
+
+Streamlit service:
+  {{ include "retail-banking-copilot.fullname" . }}:{{ .Values.service.streamlitPort }}
+
+FastAPI service:
+  {{ include "retail-banking-copilot.fullname" . }}:{{ .Values.service.apiPort }}
+
+{{- if .Values.ezua.virtualService.enabled }}
+Istio endpoint:
+  {{ .Values.ezua.virtualService.endpoint }}
+{{- end }}
+
+To use a ChromaDB server in the same release, install with:
+  --set chroma.mode=http \
+  --set chroma.host={{ include "retail-banking-copilot.chromadbFullname" . }} \
+  --set chromadb.enabled=true

@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "retail-banking-copilot.fullname" . }}
+  labels:
+    {{- include "retail-banking-copilot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "retail-banking-copilot.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "retail-banking-copilot.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "retail-banking-copilot.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: retail-banking-copilot
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: streamlit
+              containerPort: 8501
+              protocol: TCP
+            - name: api
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: LLM_BASE_URL
+              value: {{ .Values.llm.baseUrl | quote }}
+            - name: LLM_MODEL
+              value: {{ .Values.llm.model | quote }}
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "retail-banking-copilot.secretName" . }}
+                  key: {{ .Values.llm.existingSecretKey | quote }}
+            - name: LLM_TIMEOUT_SECONDS
+              value: {{ .Values.llm.timeoutSeconds | quote }}
+            - name: EMBEDDING_MODEL
+              value: {{ .Values.embedding.model | quote }}
+            - name: CHROMA_MODE
+              value: {{ .Values.chroma.mode | quote }}
+            - name: CHROMA_PATH
+              value: {{ .Values.chroma.path | quote }}
+            - name: CHROMA_HOST
+              value: {{ .Values.chroma.host | quote }}
+            - name: CHROMA_PORT
+              value: {{ .Values.chroma.port | quote }}
+            - name: CHROMA_SSL
+              value: {{ .Values.chroma.ssl | quote }}
+            - name: CHROMA_TENANT
+              value: {{ .Values.chroma.tenant | quote }}
+            - name: CHROMA_DATABASE
+              value: {{ .Values.chroma.database | quote }}
+            - name: DATA_PATH
+              value: /app/data
+            - name: API_BASE_URL
+              value: http://localhost:8080
+            - name: LOG_LEVEL
+              value: {{ .Values.env.logLevel | quote }}
+            - name: ANONYMIZED_TELEMETRY
+              value: {{ .Values.env.anonymizedTelemetry | quote }}
+            - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+              value: {{ .Values.env.streamlitGatherUsageStats | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: api
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: api
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            {{- if eq .Values.chroma.mode "persistent" }}
+            - name: chroma
+              mountPath: /app/chroma_db
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.data.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "retail-banking-copilot.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if eq .Values.chroma.mode "persistent" }}
+        - name: chroma
+          {{- if .Values.persistence.chroma.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "retail-banking-copilot.fullname" . }}-chroma
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

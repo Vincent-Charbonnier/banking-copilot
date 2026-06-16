@@ -1,0 +1,47 @@
+services:
+  retail-banking-copilot:
+    build: .
+    container_name: retail-banking-copilot
+    ports:
+      - "8080:8080"
+      - "8501:8501"
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:8000/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen3-32b}
+      LLM_API_KEY: ${LLM_API_KEY:-local}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      CHROMA_MODE: ${CHROMA_MODE:-persistent}
+      CHROMA_PATH: /app/chroma_db
+      CHROMA_HOST: ${CHROMA_HOST:-chromadb}
+      CHROMA_PORT: ${CHROMA_PORT:-8000}
+      CHROMA_SSL: ${CHROMA_SSL:-false}
+      CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
+      CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
+      DATA_PATH: /app/data
+      API_BASE_URL: http://localhost:8080
+      ANONYMIZED_TELEMETRY: "False"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    volumes:
+      - chroma_data:/app/chroma_db
+      - demo_data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  chromadb:
+    image: chromadb/chroma:0.5.23
+    container_name: retail-banking-chromadb
+    profiles:
+      - chroma-server
+    ports:
+      - "8001:8000"
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma_server_data:/chroma/chroma
+
+volumes:
+  chroma_data:
+  chroma_server_data:
+  demo_data:

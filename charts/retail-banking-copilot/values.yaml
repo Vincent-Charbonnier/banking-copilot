@@ -1,0 +1,95 @@
+replicaCount: 1
+
+image:
+  repository: retail-banking-copilot
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  streamlitPort: 8501
+  apiPort: 8080
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+persistence:
+  data:
+    enabled: true
+    size: 2Gi
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+  chroma:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+
+llm:
+  baseUrl: http://vllm:8000/v1
+  model: qwen3-32b
+  apiKey: local
+  existingSecret: ""
+  existingSecretKey: LLM_API_KEY
+  timeoutSeconds: 30
+
+embedding:
+  model: all-MiniLM-L6-v2
+
+chroma:
+  mode: persistent
+  path: /app/chroma_db
+  host: chromadb
+  port: 8000
+  ssl: false
+  tenant: default_tenant
+  database: default_database
+
+chromadb:
+  enabled: false
+  image:
+    repository: chromadb/chroma
+    tag: 0.5.23
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+  resources: {}
+
+env:
+  logLevel: INFO
+  streamlitGatherUsageStats: "false"
+  anonymizedTelemetry: "False"
+
+ezua:
+  virtualService:
+    enabled: true
+    endpoint: retail-banking-copilot.${DOMAIN_NAME}
+    domain: ${DOMAIN_NAME}
+    istioGateway: istio-system/ezaf-gateway

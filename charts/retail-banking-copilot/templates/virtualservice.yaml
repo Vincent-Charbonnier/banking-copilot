@@ -1,0 +1,25 @@
+{{- if .Values.ezua.virtualService.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "retail-banking-copilot.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "retail-banking-copilot.labels" . | nindent 4 }}
+spec:
+  gateways:
+    - {{ .Values.ezua.virtualService.istioGateway | quote }}
+  hosts:
+    - {{ .Values.ezua.virtualService.endpoint | quote }}
+  http:
+    - match:
+        - uri:
+            prefix: /
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: {{ include "retail-banking-copilot.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+            port:
+              number: {{ .Values.service.streamlitPort }}
+{{- end }}

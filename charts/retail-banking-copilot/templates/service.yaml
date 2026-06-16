@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "retail-banking-copilot.fullname" . }}
+  labels:
+    {{- include "retail-banking-copilot.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "retail-banking-copilot.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: streamlit
+      protocol: TCP
+      port: {{ .Values.service.streamlitPort }}
+      targetPort: streamlit
+    - name: api
+      protocol: TCP
+      port: {{ .Values.service.apiPort }}
+      targetPort: api

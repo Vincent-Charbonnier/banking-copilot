@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+data/customers/*.json
+data/interactions/*.json
+data/products/*.pdf
+data/policies/*.pdf
+chroma_db/*
+!chroma_db/.gitkeep
+
+.DS_Store
