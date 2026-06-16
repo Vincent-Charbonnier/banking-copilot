@@ -57,30 +57,13 @@ embedding:
   model: all-MiniLM-L6-v2
 
 chroma:
-  mode: persistent
+  mode: http
   path: /app/chroma_db
-  host: chromadb
+  host: existing-chromadb
   port: 8000
   ssl: false
   tenant: default_tenant
   database: default_database
-
-chromadb:
-  enabled: false
-  image:
-    repository: chromadb/chroma
-    tag: 0.5.23
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 8000
-  persistence:
-    enabled: true
-    size: 5Gi
-    storageClassName: ""
-    accessModes:
-      - ReadWriteOnce
-  resources: {}
 
 env:
   logLevel: INFO

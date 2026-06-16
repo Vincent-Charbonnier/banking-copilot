@@ -11,7 +11,7 @@ Istio endpoint:
   {{ .Values.ezua.virtualService.endpoint }}
 {{- end }}
 
-To use a ChromaDB server in the same release, install with:
+To use your existing ChromaDB server, install with:
   --set chroma.mode=http \
-  --set chroma.host={{ include "retail-banking-copilot.chromadbFullname" . }} \
-  --set chromadb.enabled=true
+  --set chroma.host=<existing-chromadb-service> \
+  --set chroma.port=8000

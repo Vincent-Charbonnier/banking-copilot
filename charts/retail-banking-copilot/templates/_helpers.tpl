@@ -67,10 +67,3 @@ App secret name.
 {{- printf "%s-llm" (include "retail-banking-copilot.fullname" .) -}}
 {{- end -}}
 {{- end }}
-
-{{/*
-ChromaDB fullname.
-*/}}
-{{- define "retail-banking-copilot.chromadbFullname" -}}
-{{- printf "%s-chromadb" (include "retail-banking-copilot.fullname" .) | trunc 63 | trimSuffix "-" -}}
-{{- end }}

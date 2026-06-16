@@ -107,18 +107,7 @@ Render the chart locally:
 helm template retail-banking-copilot charts/retail-banking-copilot
 ```
 
-Install with embedded persistent ChromaDB:
-
-```bash
-helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
-  --namespace banking-demo \
-  --create-namespace \
-  --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.0 \
-  --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
-```
-
-Install with a ChromaDB server deployed by the chart:
+Install and connect to an existing ChromaDB service:
 
 ```bash
 helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
@@ -127,8 +116,8 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set image.repository=vinchar/retail-banking-copilot \
   --set image.tag=0.1.0 \
   --set chroma.mode=http \
-  --set chroma.host=retail-banking-copilot-chromadb \
-  --set chromadb.enabled=true \
+  --set chroma.host=YOUR_EXISTING_CHROMADB_SERVICE \
+  --set chroma.port=8000 \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
@@ -139,7 +128,8 @@ The chart creates:
 - Optional Istio `VirtualService`
 - Secret for `LLM_API_KEY`, or an existing secret reference
 - PVCs for generated demo data and local ChromaDB
-- Optional ChromaDB server `Deployment`, `Service`, and PVC
+
+The chart does not deploy ChromaDB. Point `chroma.host`, `chroma.port`, `chroma.ssl`, `chroma.tenant`, and `chroma.database` at the ChromaDB service already running on your server.
 
 ## Configuration
 
