@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Retail Banking Advisor Copilot
 
 Retail Banking Advisor Copilot is a complete local demo of an enterprise AI assistant for retail banking advisors. It runs with a Streamlit UI, FastAPI backend, local JSON/PDF demo data, ChromaDB retrieval, deterministic banking tools, and an OpenAI-compatible LLM interface suitable for private vLLM deployments.
@@ -241,5 +240,3 @@ OpenAPI documentation is available at `/docs`.
 - `Summarize recent customer interactions.`
 - `Is this customer likely to qualify for an auto loan?`
 =======
-# banking-copilot
->>>>>>> 9ea36d694af427e59044e59027e5f3aaa878b200
