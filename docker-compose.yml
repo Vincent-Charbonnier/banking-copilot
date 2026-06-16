@@ -1,6 +1,7 @@
 services:
   retail-banking-copilot:
     build: .
+    image: vinchar/retail-banking-copilot:0.1.0
     container_name: retail-banking-copilot
     ports:
       - "8080:8080"

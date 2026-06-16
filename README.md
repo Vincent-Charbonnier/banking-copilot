@@ -113,8 +113,8 @@ Install with embedded persistent ChromaDB:
 helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
-  --set image.repository=REGISTRY/retail-banking-copilot \
-  --set image.tag=latest \
+  --set image.repository=vinchar/retail-banking-copilot \
+  --set image.tag=0.1.0 \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
@@ -124,8 +124,8 @@ Install with a ChromaDB server deployed by the chart:
 helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
-  --set image.repository=REGISTRY/retail-banking-copilot \
-  --set image.tag=latest \
+  --set image.repository=vinchar/retail-banking-copilot \
+  --set image.tag=0.1.0 \
   --set chroma.mode=http \
   --set chroma.host=retail-banking-copilot-chromadb \
   --set chromadb.enabled=true \
