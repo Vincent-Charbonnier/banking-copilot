@@ -1,11 +1,11 @@
 services:
-  retail-banking-copilot:
+  backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.0
-    container_name: retail-banking-copilot
+    image: vinchar/retail-banking-copilot:0.1.1
+    container_name: retail-banking-backend
+    command: ["./scripts/start_backend.sh"]
     ports:
       - "8080:8080"
-      - "8501:8501"
     environment:
       LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:8000/v1}
       LLM_MODEL: ${LLM_MODEL:-qwen3-32b}
@@ -27,6 +27,24 @@ services:
       - demo_data:/app/data
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    image: vinchar/retail-banking-copilot:0.1.1
+    container_name: retail-banking-frontend
+    command: ["./scripts/start_frontend.sh"]
+    ports:
+      - "8501:8501"
+    environment:
+      API_BASE_URL: http://backend:8080
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    depends_on:
+      backend:
+        condition: service_healthy
 
   chromadb:
     image: chromadb/chroma:0.5.23

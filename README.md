@@ -90,7 +90,12 @@ Open:
 docker compose up --build
 ```
 
-The container startup script checks for generated data, creates it when missing, checks for ChromaDB indexes, ingests documents when needed, starts FastAPI on port `8080`, and starts Streamlit on port `8501`.
+Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
+
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.1`:
+
+- `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
+- `frontend`: Streamlit advisor workspace on port `8501`
 
 The compose file persists:
 
@@ -114,7 +119,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.0 \
+  --set image.tag=0.1.1 \
   --set chroma.mode=http \
   --set chroma.host=YOUR_EXISTING_CHROMADB_SERVICE \
   --set chroma.port=8000 \
@@ -123,11 +128,14 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
 
 The chart creates:
 
-- App `Deployment` exposing Streamlit on `8501` and FastAPI on `8080`
+- App `Deployment` with separate backend and frontend containers
+- FastAPI exposed on `8080` inside the pod
+- Streamlit exposed on `8501`
 - `Service` with Streamlit and API ports
 - Optional Istio `VirtualService`
 - Secret for `LLM_API_KEY`, or an existing secret reference
-- PVCs for generated demo data and local ChromaDB
+- PVC for generated demo data
+- Optional local ChromaDB PVC only when `chroma.mode=persistent`
 
 The chart does not deploy ChromaDB. Point `chroma.host`, `chroma.port`, `chroma.ssl`, `chroma.tenant`, and `chroma.database` at the ChromaDB service already running on your server.
 

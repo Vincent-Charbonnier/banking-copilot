@@ -31,17 +31,15 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: retail-banking-copilot
+        - name: backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["./scripts/start_backend.sh"]
           {{- with .Values.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           ports:
-            - name: streamlit
-              containerPort: 8501
-              protocol: TCP
             - name: api
               containerPort: 8080
               protocol: TCP
@@ -75,8 +73,6 @@ spec:
               value: {{ .Values.chroma.database | quote }}
             - name: DATA_PATH
               value: /app/data
-            - name: API_BASE_URL
-              value: http://localhost:8080
             - name: LOG_LEVEL
               value: {{ .Values.env.logLevel | quote }}
             - name: ANONYMIZED_TELEMETRY
@@ -104,6 +100,41 @@ spec:
             - name: chroma
               mountPath: /app/chroma_db
             {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["./scripts/start_frontend.sh"]
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: streamlit
+              containerPort: 8501
+              protocol: TCP
+          env:
+            - name: API_BASE_URL
+              value: http://localhost:8080
+            - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+              value: {{ .Values.env.streamlitGatherUsageStats | quote }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: streamlit
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: streamlit
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

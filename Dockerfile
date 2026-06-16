@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN chmod +x startup.sh
+RUN chmod +x startup.sh scripts/start_backend.sh scripts/start_frontend.sh
 
 EXPOSE 8080 8501
 
