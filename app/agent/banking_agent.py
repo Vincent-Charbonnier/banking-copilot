@@ -72,37 +72,36 @@ class BankingAgent:
         messages.extend(item.model_dump() for item in history[-8:])
         messages.append({"role": "user", "content": message})
 
-        first = self.llm.chat(messages, tools=TOOL_DEFINITIONS)
-        if not first:
-            return None
-        choice = first.get("choices", [{}])[0].get("message", {})
-        tool_calls = choice.get("tool_calls") or []
-        if not tool_calls:
-            return str(choice.get("content") or "").strip() or None
+        for _ in range(6):
+            response = self.llm.chat(messages, tools=TOOL_DEFINITIONS)
+            choice = response.get("choices", [{}])[0].get("message", {})
+            tool_calls = choice.get("tool_calls") or []
+            if not tool_calls:
+                return str(choice.get("content") or "").strip() or None
 
-        messages.append(choice)
-        for call in tool_calls[:8]:
-            function = call.get("function", {})
-            name = function.get("name")
-            raw_arguments = function.get("arguments") or "{}"
-            try:
-                arguments = json.loads(raw_arguments)
-                result = self.tools.execute(name, arguments)
-            except Exception as exc:
-                logger.exception("Tool call failed: %s", name)
-                result = {"error": str(exc)}
-                arguments = {}
+            messages.append(choice)
+            for call in tool_calls[:8]:
+                function = call.get("function", {})
+                name = function.get("name")
+                raw_arguments = function.get("arguments") or "{}"
+                try:
+                    arguments = json.loads(raw_arguments)
+                    result = self.tools.execute(name, arguments)
+                except Exception as exc:
+                    logger.exception("Tool call failed: %s", name)
+                    result = {"error": str(exc)}
+                    arguments = {}
 
-            self._collect_retrieved(result, retrieved_documents)
-            tool_records.append(ToolCallRecord(name=name, arguments=arguments, result=result))
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": call.get("id"),
-                    "name": name,
-                    "content": json.dumps(result, default=str),
-                }
-            )
+                self._collect_retrieved(result, retrieved_documents)
+                tool_records.append(ToolCallRecord(name=name, arguments=arguments, result=result))
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": call.get("id"),
+                        "name": name,
+                        "content": json.dumps(result, default=str),
+                    }
+                )
 
         final = self.llm.chat(messages, tools=None)
         if not final:
@@ -141,14 +140,20 @@ class BankingAgent:
             term in lower
             for term in ["loan", "mortgage", "recommend", "qualify", "afford", "auto", "car", "personal", "student"]
         )
+        needs_product = any(
+            term in lower
+            for term in ["product", "brochure", "savings", "account", "refinance", "financing", "finance"]
+        )
         needs_email = any(term in lower for term in ["email", "follow-up", "follow up"])
 
-        if needs_lending:
+        if needs_lending or needs_product:
             product_docs = self._execute_tool("search_products", {"query": message}, tool_records)
-            policy_docs = self._execute_tool("search_policies", {"query": f"affordability approval {message}"}, tool_records)
             self._collect_retrieved(product_docs, retrieved_documents)
-            self._collect_retrieved(policy_docs, retrieved_documents)
             context["product_documents"] = product_docs
+
+        if needs_lending:
+            policy_docs = self._execute_tool("search_policies", {"query": f"affordability approval {message}"}, tool_records)
+            self._collect_retrieved(policy_docs, retrieved_documents)
             context["policy_documents"] = policy_docs
             if customer and requested_amount:
                 context["affordability"] = self._execute_tool(
