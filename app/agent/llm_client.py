@@ -46,7 +46,8 @@ class LLMClient:
         try:
             with httpx.Client(timeout=settings.llm_timeout_seconds, verify=settings.llm_ssl_verify) as client:
                 response = client.post(self.chat_url, json=payload, headers=headers)
-                response.raise_for_status()
+                if response.status_code >= 400:
+                    raise RuntimeError(f"HTTP {response.status_code}: {response.text[:1000]}")
                 return response.json()
         except Exception as exc:
             logger.warning("LLM endpoint unavailable at %s: %s", self.chat_url, exc)

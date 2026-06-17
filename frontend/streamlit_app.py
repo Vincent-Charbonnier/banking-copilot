@@ -17,21 +17,33 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
 def api_get(path: str) -> Any:
     """Call a backend GET endpoint."""
     response = requests.get(f"{API_BASE_URL}{path}", timeout=15)
-    response.raise_for_status()
+    raise_for_status_with_detail(response)
     return response.json()
+
+
+def raise_for_status_with_detail(response: requests.Response) -> None:
+    """Raise an HTTP error that includes FastAPI's detail payload when present."""
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        try:
+            detail = response.json().get("detail")
+        except ValueError:
+            detail = response.text
+        raise requests.HTTPError(f"{response.status_code} {response.reason}: {detail}") from exc
 
 
 def api_post(path: str, payload: dict[str, Any] | None = None) -> Any:
     """Call a backend POST endpoint."""
     response = requests.post(f"{API_BASE_URL}{path}", json=payload or {}, timeout=180)
-    response.raise_for_status()
+    raise_for_status_with_detail(response)
     return response.json()
 
 
 def api_put(path: str, payload: dict[str, Any]) -> Any:
     """Call a backend PUT endpoint."""
     response = requests.put(f"{API_BASE_URL}{path}", json=payload, timeout=30)
-    response.raise_for_status()
+    raise_for_status_with_detail(response)
     return response.json()
 
 
