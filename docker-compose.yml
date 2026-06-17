@@ -1,23 +1,27 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.2
+    image: vinchar/retail-banking-copilot:0.1.4
+    platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
     ports:
       - "8080:8080"
     environment:
-      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:8000/v1}
-      LLM_MODEL: ${LLM_MODEL:-qwen3-32b}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://qwen257b.project-public.serving.hpepcai3.demo.local}
+      LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
       LLM_API_KEY: ${LLM_API_KEY:-local}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
-      CHROMA_MODE: ${CHROMA_MODE:-persistent}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://all-mini-lm.project-public.serving.hpepcai3.demo.local}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      CHROMA_MODE: ${CHROMA_MODE:-http}
       CHROMA_PATH: /app/chroma_db
-      CHROMA_HOST: ${CHROMA_HOST:-chromadb}
-      CHROMA_PORT: ${CHROMA_PORT:-8000}
-      CHROMA_SSL: ${CHROMA_SSL:-false}
+      CHROMA_HOST: ${CHROMA_HOST:-chroma-db.hpepcai3.demo.local}
+      CHROMA_PORT: ${CHROMA_PORT:-443}
+      CHROMA_SSL: ${CHROMA_SSL:-true}
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
       CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
+      ALLOW_LOCAL_CHROMA_FALLBACK: ${ALLOW_LOCAL_CHROMA_FALLBACK:-true}
       DATA_PATH: /app/data
       RUNTIME_SETTINGS_PATH: /app/data/config/runtime_settings.json
       API_BASE_URL: http://localhost:8080
@@ -35,7 +39,8 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.2
+    image: vinchar/retail-banking-copilot:0.1.4
+    platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]
     ports:

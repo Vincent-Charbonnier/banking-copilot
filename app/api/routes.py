@@ -107,6 +107,8 @@ def reindex() -> dict[str, str]:
             "CHROMA_TENANT": settings.chroma_tenant,
             "CHROMA_DATABASE": settings.chroma_database,
             "EMBEDDING_MODEL": settings.embedding_model,
+            "EMBEDDING_BASE_URL": settings.embedding_base_url,
+            "EMBEDDING_API_KEY": settings.embedding_api_key,
             "ANONYMIZED_TELEMETRY": "False",
         }
     )

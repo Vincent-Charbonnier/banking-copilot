@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.2
+  tag: 0.1.4
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -46,27 +46,32 @@ persistence:
       - ReadWriteOnce
 
 llm:
-  baseUrl: http://vllm:8000/v1
-  model: qwen3-32b
+  baseUrl: https://qwen257b.project-public.serving.hpepcai3.demo.local
+  model: Qwen/Qwen2.5-7B-Instruct
   apiKey: local
   existingSecret: ""
   existingSecretKey: LLM_API_KEY
   timeoutSeconds: 30
 
 embedding:
-  model: all-MiniLM-L6-v2
+  model: sentence-transformers/all-MiniLM-L6-v2
+  baseUrl: https://all-mini-lm.project-public.serving.hpepcai3.demo.local
+  apiKey: ""
+  existingSecret: ""
+  existingSecretKey: EMBEDDING_API_KEY
 
 chroma:
   mode: http
   path: /app/chroma_db
-  host: existing-chromadb
-  port: 8000
-  ssl: false
+  host: chroma-db.hpepcai3.demo.local
+  port: 443
+  ssl: true
   tenant: default_tenant
   database: default_database
 
 env:
   logLevel: INFO
+  allowLocalChromaFallback: "true"
   runtimeSettingsPath: /app/data/config/runtime_settings.json
   streamlitGatherUsageStats: "false"
   anonymizedTelemetry: "False"

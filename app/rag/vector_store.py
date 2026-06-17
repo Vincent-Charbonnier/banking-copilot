@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Any
 
 import chromadb
+import httpx
 from chromadb.config import Settings as ChromaSettings
 from sentence_transformers import SentenceTransformer
 
@@ -21,6 +22,37 @@ def get_embedding_model() -> SentenceTransformer:
     """Load the configured sentence-transformers model once per process."""
     logger.info("Loading embedding model %s", settings.embedding_model)
     return SentenceTransformer(settings.embedding_model)
+
+
+def _embedding_url() -> str:
+    """Return the configured OpenAI-compatible embeddings URL."""
+    return f"{settings.embedding_base_url.rstrip('/')}/embeddings"
+
+
+def _remote_embeddings(texts: list[str]) -> list[list[float]]:
+    """Call an OpenAI-compatible embeddings endpoint."""
+    headers = {"Authorization": f"Bearer {settings.embedding_api_key}"}
+    payload = {"model": settings.embedding_model, "input": texts}
+    with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+        response = client.post(_embedding_url(), headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()["data"]
+    return [item["embedding"] for item in sorted(data, key=lambda item: item["index"])]
+
+
+def embed_texts(texts: list[str]) -> list[list[float]]:
+    """Embed texts using the configured endpoint, with local fallback."""
+    if not texts:
+        return []
+
+    if settings.embedding_base_url:
+        try:
+            logger.info("Embedding %s texts via %s", len(texts), settings.embedding_base_url)
+            return _remote_embeddings(texts)
+        except Exception as exc:
+            logger.warning("Remote embedding failed, falling back to local sentence-transformers: %s", exc)
+
+    return get_embedding_model().encode(texts, normalize_embeddings=True).tolist()
 
 
 class VectorStore:
@@ -74,7 +106,7 @@ class VectorStore:
     def search(self, collection_name: str, query: str, limit: int = 4) -> list[RetrievedDocument]:
         """Search a Chroma collection and return normalized chunks."""
         collection = self.get_collection(collection_name)
-        query_embedding = get_embedding_model().encode([query], normalize_embeddings=True).tolist()[0]
+        query_embedding = embed_texts([query])[0]
         result: dict[str, Any] = collection.query(
             query_embeddings=[query_embedding],
             n_results=limit,

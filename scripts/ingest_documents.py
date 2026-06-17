@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from app.rag.vector_store import VectorStore, get_embedding_model
+from app.rag.vector_store import VectorStore, embed_texts
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -49,7 +49,6 @@ def document_name_from_path(path: Path) -> str:
 def ingest_directory(directory: Path, collection_name: str, document_type: str, store: VectorStore) -> int:
     """Ingest all PDFs in a directory into one Chroma collection."""
     collection = store.reset_collection(collection_name)
-    model = get_embedding_model()
     ids: list[str] = []
     documents: list[str] = []
     metadatas: list[dict[str, str | int]] = []
@@ -73,7 +72,7 @@ def ingest_directory(directory: Path, collection_name: str, document_type: str, 
         logger.warning("No documents found in %s", directory)
         return 0
 
-    embeddings = model.encode(documents, normalize_embeddings=True).tolist()
+    embeddings = embed_texts(documents)
     collection.add(ids=ids, documents=documents, metadatas=metadatas, embeddings=embeddings)
     logger.info("Ingested %s chunks into %s", len(documents), collection_name)
     return len(documents)

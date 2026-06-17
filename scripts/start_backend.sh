@@ -12,7 +12,7 @@ fi
 
 if [ "${CHROMA_MODE:-persistent}" = "http" ]; then
   echo "Waiting for ChromaDB HTTP server at ${CHROMA_HOST:-localhost}:${CHROMA_PORT:-8000}..."
-  python - <<'PY'
+  if ! python - <<'PY'
 import time
 
 from app.rag.vector_store import VectorStore
@@ -27,6 +27,14 @@ for _ in range(60):
         time.sleep(1)
 raise SystemExit(f"ChromaDB server was not ready: {last_error}")
 PY
+  then
+    if [ "${ALLOW_LOCAL_CHROMA_FALLBACK:-true}" = "true" ]; then
+      echo "ChromaDB HTTP server unavailable. Falling back to local persistent ChromaDB at ${CHROMA_PATH:-./chroma_db}."
+      export CHROMA_MODE=persistent
+    else
+      exit 1
+    fi
+  fi
 fi
 
 if python - <<'PY'

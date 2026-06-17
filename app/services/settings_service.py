@@ -35,6 +35,9 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     if update.llm_api_key:
         settings.llm_api_key = update.llm_api_key
     settings.embedding_model = update.embedding_model
+    settings.embedding_base_url = update.embedding_base_url.rstrip("/")
+    if update.embedding_api_key:
+        settings.embedding_api_key = update.embedding_api_key
     settings.chroma_mode = update.chroma_mode
     settings.chroma_path = Path(update.chroma_path)
     settings.chroma_host = update.chroma_host
@@ -43,11 +46,14 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     settings.chroma_tenant = update.chroma_tenant
     settings.chroma_database = update.chroma_database
     settings.llm_timeout_seconds = update.llm_timeout_seconds
+    settings.normalize_chroma_endpoint()
 
     os.environ["LLM_BASE_URL"] = settings.llm_base_url
     os.environ["LLM_MODEL"] = settings.llm_model
     os.environ["LLM_API_KEY"] = settings.llm_api_key
     os.environ["EMBEDDING_MODEL"] = settings.embedding_model
+    os.environ["EMBEDDING_BASE_URL"] = settings.embedding_base_url
+    os.environ["EMBEDDING_API_KEY"] = settings.embedding_api_key
     os.environ["CHROMA_MODE"] = settings.chroma_mode
     os.environ["CHROMA_PATH"] = str(settings.chroma_path)
     os.environ["CHROMA_HOST"] = settings.chroma_host

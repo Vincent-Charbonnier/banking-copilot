@@ -387,13 +387,20 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 placeholder="Leave blank to keep the current token",
             )
             embedding_model = st.text_input("Embedding model", value=settings["embedding_model"])
+            embedding_base_url = st.text_input("Embedding endpoint", value=settings["embedding_base_url"])
+            embedding_api_key = st.text_input(
+                "Embedding token",
+                value="",
+                type="password",
+                placeholder="Leave blank to keep the current token",
+            )
             chroma_mode = st.segmented_control(
                 "ChromaDB access",
                 options=["persistent", "http"],
                 default=settings["chroma_mode"],
             ) or settings["chroma_mode"]
             chroma_path = st.text_input("ChromaDB path", value=settings["chroma_path"], disabled=chroma_mode == "http")
-            chroma_host = st.text_input("ChromaDB host", value=settings["chroma_host"], disabled=chroma_mode == "persistent")
+            chroma_host = st.text_input("ChromaDB endpoint or host", value=settings["chroma_host"], disabled=chroma_mode == "persistent")
             chroma_port = st.number_input(
                 "ChromaDB port",
                 min_value=1,
@@ -420,6 +427,8 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "llm_model": llm_model,
                 "llm_api_key": llm_api_key or None,
                 "embedding_model": embedding_model,
+                "embedding_base_url": embedding_base_url,
+                "embedding_api_key": embedding_api_key or None,
                 "chroma_mode": chroma_mode,
                 "chroma_path": chroma_path,
                 "chroma_host": chroma_host,
@@ -442,6 +451,8 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "llm_model": current["llm_model"],
                 "llm_api_key_configured": current["llm_api_key_configured"],
                 "embedding_model": current["embedding_model"],
+                "embedding_base_url": current["embedding_base_url"],
+                "embedding_api_key_configured": current["embedding_api_key_configured"],
                 "chroma_mode": current["chroma_mode"],
                 "chroma_path": current["chroma_path"],
                 "chroma_host": current["chroma_host"],

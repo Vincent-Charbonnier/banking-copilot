@@ -92,10 +92,12 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.2`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.4`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
+
+The compose file pins `platform: linux/amd64` so locally built and pulled containers match x86 server deployments.
 
 The compose file persists:
 
@@ -119,12 +121,21 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.2 \
+  --set image.tag=0.1.4 \
+  --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
+  --set llm.model=Qwen/Qwen2.5-7B-Instruct \
+  --set llm.apiKey=YOUR_LLM_TOKEN \
+  --set embedding.baseUrl=https://all-mini-lm.project-public.serving.hpepcai3.demo.local \
+  --set embedding.model=sentence-transformers/all-MiniLM-L6-v2 \
+  --set embedding.apiKey=YOUR_EMBEDDING_TOKEN \
   --set chroma.mode=http \
-  --set chroma.host=YOUR_EXISTING_CHROMADB_SERVICE \
-  --set chroma.port=8000 \
+  --set chroma.host=chroma-db.hpepcai3.demo.local \
+  --set chroma.port=443 \
+  --set chroma.ssl=true \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
+
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.4.tgz`.
 
 The chart creates:
 
@@ -133,7 +144,7 @@ The chart creates:
 - Streamlit exposed on `8501`
 - `Service` with Streamlit and API ports
 - Optional Istio `VirtualService`
-- Secret for `LLM_API_KEY`, or an existing secret reference
+- Secret for `LLM_API_KEY` and `EMBEDDING_API_KEY`, or existing secret references
 - PVC for generated demo data
 - Optional local ChromaDB PVC only when `chroma.mode=persistent`
 
@@ -144,30 +155,35 @@ The chart does not deploy ChromaDB. Point `chroma.host`, `chroma.port`, `chroma.
 Environment variables:
 
 ```bash
-LLM_BASE_URL=http://localhost:8000/v1
-LLM_MODEL=qwen3-32b
+LLM_BASE_URL=https://qwen257b.project-public.serving.hpepcai3.demo.local
+LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 LLM_API_KEY=local
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-CHROMA_MODE=persistent
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_BASE_URL=https://all-mini-lm.project-public.serving.hpepcai3.demo.local
+EMBEDDING_API_KEY=
+CHROMA_MODE=http
 CHROMA_PATH=./chroma_db
-CHROMA_HOST=localhost
-CHROMA_PORT=8000
-CHROMA_SSL=false
+CHROMA_HOST=chroma-db.hpepcai3.demo.local
+CHROMA_PORT=443
+CHROMA_SSL=true
 CHROMA_TENANT=default_tenant
 CHROMA_DATABASE=default_database
+ALLOW_LOCAL_CHROMA_FALLBACK=true
 DATA_PATH=./data
 RUNTIME_SETTINGS_PATH=./data/config/runtime_settings.json
 API_BASE_URL=http://localhost:8080
 ```
 
-For Docker, `LLM_BASE_URL` defaults to `http://host.docker.internal:8000/v1` so the app container can call a vLLM server running on the host.
+The repository does not commit bearer tokens. Set `LLM_API_KEY` and `EMBEDDING_API_KEY` through `.env`, Helm values, existing Kubernetes secrets, or the Settings tab.
 
 ChromaDB can run in two modes:
 
 - `CHROMA_MODE=persistent`: embedded ChromaDB client writes to `CHROMA_PATH`.
 - `CHROMA_MODE=http`: app connects to a ChromaDB server using `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
 
-The compose file includes an optional separate `chromadb` container exposed on host port `8001` and available to the app as `chromadb:8000`. To use it:
+External ChromaDB is the default. For local demos, the backend falls back to local persistent ChromaDB when `ALLOW_LOCAL_CHROMA_FALLBACK=true` and the external service is unavailable. Set it to `false` on servers where ChromaDB connectivity should fail fast.
+
+The compose file also includes an optional separate `chromadb` container exposed on host port `8001` and available to the app as `chromadb:8000`. To use it:
 
 ```bash
 CHROMA_MODE=http CHROMA_HOST=chromadb CHROMA_PORT=8000 docker compose --profile chroma-server up --build
@@ -178,6 +194,8 @@ The Streamlit app also includes a `Settings` tab where you can update these runt
 - ChromaDB path
 - ChromaDB mode, host, port, SSL, tenant, and database
 - Embedding model
+- Embedding endpoint
+- Embedding token
 - LLM endpoint
 - LLM model name
 - LLM token
@@ -185,7 +203,7 @@ The Streamlit app also includes a `Settings` tab where you can update these runt
 
 Settings changed in the UI are applied to the running FastAPI process and persisted to `RUNTIME_SETTINGS_PATH`. In Docker this defaults to `/app/data/config/runtime_settings.json`, which is stored in the `demo_data` volume. In Helm this path is mounted on the data PVC.
 
-The token is saved in that local settings file when you enter one, but it is never returned to the browser. Leaving the token field blank keeps the existing token. After changing the embedding model, ChromaDB mode, or ChromaDB location, click `Reindex documents` in the Settings tab to rebuild the product and policy collections.
+Tokens are saved in that local settings file when you enter them, but they are never returned to the browser. Leaving a token field blank keeps the existing token. After changing the embedding model, embedding endpoint, ChromaDB mode, or ChromaDB location, click `Reindex documents` in the Settings tab to rebuild the product and policy collections.
 
 ## HPE Private Cloud AI Deployment Notes
 

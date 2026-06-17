@@ -102,6 +102,8 @@ class RuntimeSettings(BaseModel):
     llm_model: str
     llm_api_key_configured: bool
     embedding_model: str
+    embedding_base_url: str
+    embedding_api_key_configured: bool
     chroma_mode: Literal["persistent", "http"]
     chroma_path: str
     chroma_host: str
@@ -123,7 +125,9 @@ class RuntimeSettingsUpdate(BaseModel):
     llm_model: str = Field(..., min_length=1)
     llm_api_key: str | None = None
     embedding_model: str = Field(..., min_length=1)
-    chroma_mode: Literal["persistent", "http"] = "persistent"
+    embedding_base_url: str = ""
+    embedding_api_key: str | None = None
+    chroma_mode: Literal["persistent", "http"] = "http"
     chroma_path: str = Field(..., min_length=1)
     chroma_host: str = Field(default="localhost", min_length=1)
     chroma_port: int = Field(default=8000, gt=0, le=65535)

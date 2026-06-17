@@ -58,12 +58,30 @@ Service account name.
 {{- end }}
 
 {{/*
-App secret name.
+Generated app secret name.
+*/}}
+{{- define "retail-banking-copilot.generatedSecretName" -}}
+{{- printf "%s-llm" (include "retail-banking-copilot.fullname" .) -}}
+{{- end }}
+
+{{/*
+LLM secret name.
 */}}
 {{- define "retail-banking-copilot.secretName" -}}
 {{- if .Values.llm.existingSecret -}}
 {{- .Values.llm.existingSecret -}}
 {{- else -}}
-{{- printf "%s-llm" (include "retail-banking-copilot.fullname" .) -}}
+{{- include "retail-banking-copilot.generatedSecretName" . -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Embedding secret name.
+*/}}
+{{- define "retail-banking-copilot.embeddingSecretName" -}}
+{{- if .Values.embedding.existingSecret -}}
+{{- .Values.embedding.existingSecret -}}
+{{- else -}}
+{{- include "retail-banking-copilot.generatedSecretName" . -}}
 {{- end -}}
 {{- end }}

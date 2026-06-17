@@ -14,6 +14,8 @@ def main() -> None:
         "LLM_MODEL": settings.llm_model,
         "LLM_API_KEY": settings.llm_api_key,
         "EMBEDDING_MODEL": settings.embedding_model,
+        "EMBEDDING_BASE_URL": settings.embedding_base_url,
+        "EMBEDDING_API_KEY": settings.embedding_api_key,
         "CHROMA_MODE": settings.chroma_mode,
         "CHROMA_PATH": str(settings.chroma_path),
         "CHROMA_HOST": settings.chroma_host,

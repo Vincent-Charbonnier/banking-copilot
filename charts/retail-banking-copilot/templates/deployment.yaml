@@ -57,6 +57,13 @@ spec:
               value: {{ .Values.llm.timeoutSeconds | quote }}
             - name: EMBEDDING_MODEL
               value: {{ .Values.embedding.model | quote }}
+            - name: EMBEDDING_BASE_URL
+              value: {{ .Values.embedding.baseUrl | quote }}
+            - name: EMBEDDING_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "retail-banking-copilot.embeddingSecretName" . }}
+                  key: {{ .Values.embedding.existingSecretKey | quote }}
             - name: CHROMA_MODE
               value: {{ .Values.chroma.mode | quote }}
             - name: CHROMA_PATH
@@ -71,6 +78,8 @@ spec:
               value: {{ .Values.chroma.tenant | quote }}
             - name: CHROMA_DATABASE
               value: {{ .Values.chroma.database | quote }}
+            - name: ALLOW_LOCAL_CHROMA_FALLBACK
+              value: {{ .Values.env.allowLocalChromaFallback | quote }}
             - name: DATA_PATH
               value: /app/data
             - name: RUNTIME_SETTINGS_PATH
