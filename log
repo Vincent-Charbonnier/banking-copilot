@@ -1,50 +1,63 @@
 (base) public@gpu-jupyternotebook-0:~$ kubectl logs retail-banking-copilot-7597f9f789-s9xnn | tail -100
-INFO:     127.0.0.1:48684 - "GET /settings HTTP/1.1" 200 OK
-INFO:     127.0.0.6:41969 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:56545 - "GET /health HTTP/1.1" 200 OK
-2026-06-17 19:36:00,559 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:48686 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.6:37995 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55682 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55694 - "GET /settings HTTP/1.1" 200 OK
-2026-06-17 19:36:09,727 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-2026-06-17 19:36:09,728 INFO app.tools.banking_tools - Executing tool get_customer with arguments {'customer_id': '006'}
-2026-06-17 19:36:15,204 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:55698 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.6:43379 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60152 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60160 - "GET /settings HTTP/1.1" 200 OK
-INFO:     127.0.0.6:45263 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:50459 - "GET /health HTTP/1.1" 200 OK
-2026-06-17 19:36:30,443 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:60162 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.6:39675 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:49675 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56036 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56042 - "GET /settings HTTP/1.1" 200 OK
-2026-06-17 19:36:51,811 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-2026-06-17 19:36:51,811 INFO app.tools.banking_tools - Executing tool draft_email with arguments {'customer_name': 'Prof. Carola Jockel B.Sc.', 'recommendation': 'We are pleased to inform you that based on your financial profile, you are eligible for a EUR 25,000 car loan with the following terms:\n\n- **Loan Term:** 5 years\n- **Interest Rate:** 5% per annum\n- **Monthly Installment:** Approximately EUR 508.33\n\nYour affordability ratio is 5.42%, which is well below the recommended threshold of 30%. This means you are financially stable to manage this loan.\n\nIf you are interested in proceeding with this loan, please let us know, and we will guide you through the application process.'}
-2026-06-17 19:36:53,751 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:56044 - "POST /chat HTTP/1.1" 200 OK
-INFO:     127.0.0.6:36921 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:48379 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:40699 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:35169 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60064 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60078 - "GET /settings HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60084 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60090 - "GET /settings HTTP/1.1" 200 OK
-INFO:     127.0.0.6:52955 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:55611 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36326 - "GET /customers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:36330 - "GET /settings HTTP/1.1" 200 OK
-INFO:     127.0.0.6:49847 - "GET /health HTTP/1.1" 200 OK
-2026-06-17 19:37:38,878 INFO app.rag.vector_store - Connecting to ChromaDB HTTP server at chroma-db.hpepcai3.demo.local:443 ssl=True
-2026-06-17 19:37:39,505 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/auth/identity "HTTP/1.1 200 OK"
-2026-06-17 19:37:39,583 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
-2026-06-17 19:37:39,595 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
-2026-06-17 19:37:39,643 INFO httpx - HTTP Request: DELETE https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database/collections/products "HTTP/1.1 200 OK"
-2026-06-17 19:37:39,673 INFO httpx - HTTP Request: POST https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
+INFO:     127.0.0.6:49559 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:56349 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:50841 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:44195 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:53235 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:57897 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:58189 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:54267 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:39999 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:51051 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:44473 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:33403 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:39493 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:56815 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:33931 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:59905 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:57239 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:48713 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:34721 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:43309 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:38549 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:45231 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:53913 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:35279 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:40007 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:58847 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55820 - "GET /customers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55836 - "GET /settings HTTP/1.1" 200 OK
+2026-06-17 19:48:26,077 INFO app.services.settings_service - Persisted runtime settings to /app/data/config/runtime_settings.json
+INFO:     127.0.0.1:55838 - "PUT /settings HTTP/1.1" 200 OK
+INFO:     127.0.0.6:45501 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:35585 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58904 - "GET /customers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58914 - "GET /settings HTTP/1.1" 200 OK
+2026-06-17 19:48:31,499 INFO httpx - HTTP Request: POST https://qwen257b.project-public.serving.hpepcai3.demo.local/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:58928 - "POST /settings/test/llm HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58942 - "GET /customers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58954 - "GET /settings HTTP/1.1" 200 OK
+2026-06-17 19:48:33,139 INFO app.rag.vector_store - Embedding 1 texts via https://all-mini-lm.project-public.serving.hpepcai3.demo.local/v1
+2026-06-17 19:48:36,059 INFO httpx - HTTP Request: POST https://all-mini-lm.project-public.serving.hpepcai3.demo.local/v1/embeddings "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:58960 - "POST /settings/test/embedding HTTP/1.1" 200 OK
+INFO:     127.0.0.6:52615 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59680 - "GET /customers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59684 - "GET /settings HTTP/1.1" 200 OK
+2026-06-17 19:48:40,487 INFO app.rag.vector_store - Connecting to ChromaDB HTTP server at chroma-db.hpepcai3.demo.local:443 ssl=True
+2026-06-17 19:48:40,520 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/auth/identity "HTTP/1.1 200 OK"
+2026-06-17 19:48:40,552 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+2026-06-17 19:48:40,564 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+2026-06-17 19:48:40,568 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/heartbeat "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:59696 - "POST /settings/test/chroma HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59702 - "GET /customers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59712 - "GET /settings HTTP/1.1" 200 OK
+2026-06-17 19:48:46,498 INFO app.rag.vector_store - Connecting to ChromaDB HTTP server at chroma-db.hpepcai3.demo.local:443 ssl=True
+INFO:     127.0.0.6:45157 - "GET /health HTTP/1.1" 200 OK
+2026-06-17 19:48:47,090 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/auth/identity "HTTP/1.1 200 OK"
+2026-06-17 19:48:47,163 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant "HTTP/1.1 200 OK"
+2026-06-17 19:48:47,184 INFO httpx - HTTP Request: GET https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database "HTTP/1.1 200 OK"
+2026-06-17 19:48:47,264 INFO httpx - HTTP Request: DELETE https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database/collections/products "HTTP/1.1 200 OK"
+2026-06-17 19:48:47,308 INFO httpx - HTTP Request: POST https://chroma-db.hpepcai3.demo.local/api/v2/tenants/default_tenant/databases/default_database/collections "HTTP/1.1 200 OK"
 Traceback (most recent call last):
   File "/app/scripts/ingest_documents.py", line 92, in <module>
     main()
@@ -82,20 +95,8 @@ Traceback (most recent call last):
     f"Trying to instantiate configuration of type {cls.__name__} from JSON with type {json_map['_type']}"
                                                                                       ~~~~~~~~^^^^^^^^^
 KeyError: '_type'
-INFO:     127.0.0.1:36334 - "POST /reindex HTTP/1.1" 500 Internal Server Error
-INFO:     127.0.0.6:44589 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:37481 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:54011 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:53237 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:56957 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:54467 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:58189 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:56703 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:46757 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:60853 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:50691 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:51553 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:59733 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:34675 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:47039 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.6:51391 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59720 - "POST /reindex HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.6:53699 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:33041 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.6:45719 - "GET /health HTTP/1.1" 200 OK
+(base) public@gpu-jupyternotebook-0:~$ 
