@@ -15,9 +15,14 @@ from app.models.schemas import RetrievedDocument
 logger = logging.getLogger(__name__)
 
 
-def _embedding_url() -> str:
-    """Return the configured OpenAI-compatible embeddings URL."""
-    return f"{settings.embedding_base_url.rstrip('/')}/embeddings"
+def normalize_embedding_url(endpoint: str) -> str:
+    """Normalize an embedding endpoint to an OpenAI-compatible embeddings URL."""
+    endpoint = endpoint.rstrip("/")
+    if endpoint.endswith("/embeddings"):
+        return endpoint
+    if endpoint.endswith("/v1"):
+        return f"{endpoint}/embeddings"
+    return f"{endpoint}/v1/embeddings"
 
 
 def _remote_embeddings(texts: list[str], input_type: str) -> list[list[float]]:
@@ -25,11 +30,13 @@ def _remote_embeddings(texts: list[str], input_type: str) -> list[list[float]]:
     headers = {"Authorization": f"Bearer {settings.embedding_api_key}"}
     payload = {"model": settings.embedding_model, "input": texts, "input_type": input_type}
     with httpx.Client(timeout=settings.llm_timeout_seconds, verify=settings.embedding_ssl_verify) as client:
-        response = client.post(_embedding_url(), headers=headers, json=payload)
+        embedding_url = normalize_embedding_url(settings.embedding_base_url)
+        response = client.post(embedding_url, headers=headers, json=payload)
         if response.status_code in {400, 422}:
             payload.pop("input_type", None)
-            response = client.post(_embedding_url(), headers=headers, json=payload)
-        response.raise_for_status()
+            response = client.post(embedding_url, headers=headers, json=payload)
+        if response.status_code >= 400:
+            raise RuntimeError(f"HTTP {response.status_code} from {embedding_url}: {response.text[:1000]}")
         data = response.json()["data"]
     return [item["embedding"] for item in sorted(data, key=lambda item: item["index"])]
 

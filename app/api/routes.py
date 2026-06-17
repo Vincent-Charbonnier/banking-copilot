@@ -153,8 +153,16 @@ def reindex() -> dict[str, str]:
         }
     )
     try:
-        subprocess.run([sys.executable, "scripts/ingest_documents.py"], check=True, env=env)
+        completed = subprocess.run(
+            [sys.executable, "scripts/ingest_documents.py"],
+            check=True,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
     except subprocess.CalledProcessError as exc:
-        raise HTTPException(status_code=500, detail=f"Reindex failed: {exc}") from exc
+        output = "\n".join(part for part in [exc.stdout, exc.stderr] if part).strip()
+        detail = output[-4000:] if output else str(exc)
+        raise HTTPException(status_code=500, detail=f"Reindex failed:\n{detail}") from exc
     rebuild_agent()
-    return {"status": "reindexed"}
+    return {"status": "reindexed", "output": completed.stdout.strip()}

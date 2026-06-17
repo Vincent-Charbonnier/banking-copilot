@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.11`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.12`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -120,7 +120,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.11 \
+  --set image.tag=0.1.12 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -130,7 +130,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.11.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.12.tgz`.
 
 The chart creates:
 
@@ -175,6 +175,8 @@ API_BASE_URL=http://localhost:8080
 ```
 
 The repository does not commit bearer tokens. Set `LLM_API_KEY` and `EMBEDDING_API_KEY` through `.env`, Helm values, existing Kubernetes secrets, or the Settings tab.
+
+LLM endpoint values can be the service root, `/v1`, or a full `/v1/chat/completions` URL. Embedding endpoint values can be the service root, `/v1`, or a full `/v1/embeddings` URL.
 
 ChromaDB is remote-only. The app connects to a ChromaDB server using `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`, `CHROMA_SSL_VERIFY`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
 
