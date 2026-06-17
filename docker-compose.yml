@@ -1,32 +1,32 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.6
+    image: vinchar/retail-banking-copilot:0.1.7
     platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
     ports:
       - "8080:8080"
     environment:
-      LLM_BASE_URL: ${LLM_BASE_URL:-https://qwen257b.project-public.serving.hpepcai3.demo.local}
-      LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
-      ALLOW_LOCAL_LLM_FALLBACK: ${ALLOW_LOCAL_LLM_FALLBACK:-true}
-      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
-      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://all-mini-lm.project-public.serving.hpepcai3.demo.local}
+      ALLOW_LOCAL_LLM_FALLBACK: ${ALLOW_LOCAL_LLM_FALLBACK:-false}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
-      ALLOW_LOCAL_EMBEDDING_FALLBACK: ${ALLOW_LOCAL_EMBEDDING_FALLBACK:-true}
+      ALLOW_LOCAL_EMBEDDING_FALLBACK: ${ALLOW_LOCAL_EMBEDDING_FALLBACK:-false}
       CHROMA_MODE: ${CHROMA_MODE:-http}
       CHROMA_PATH: /app/chroma_db
-      CHROMA_HOST: ${CHROMA_HOST:-https://chroma-db.hpepcai3.demo.local/}
+      CHROMA_HOST: ${CHROMA_HOST:-}
       CHROMA_PORT: ${CHROMA_PORT:-443}
       CHROMA_SSL: ${CHROMA_SSL:-true}
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
       CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
-      ALLOW_LOCAL_CHROMA_FALLBACK: ${ALLOW_LOCAL_CHROMA_FALLBACK:-true}
+      ALLOW_LOCAL_CHROMA_FALLBACK: ${ALLOW_LOCAL_CHROMA_FALLBACK:-false}
       DATA_PATH: /app/data
       RUNTIME_SETTINGS_PATH: /app/data/config/runtime_settings.json
-      LOAD_PERSISTED_RUNTIME_SETTINGS: ${LOAD_PERSISTED_RUNTIME_SETTINGS:-true}
+      LOAD_PERSISTED_RUNTIME_SETTINGS: ${LOAD_PERSISTED_RUNTIME_SETTINGS:-false}
       API_BASE_URL: http://localhost:8080
       ANONYMIZED_TELEMETRY: "False"
       STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
@@ -42,7 +42,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.6
+    image: vinchar/retail-banking-copilot:0.1.7
     platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]
@@ -55,21 +55,6 @@ services:
       backend:
         condition: service_healthy
 
-  chromadb:
-    image: chromadb/chroma:0.5.23
-    container_name: retail-banking-chromadb
-    profiles:
-      - chroma-server
-    ports:
-      - "8001:8000"
-    environment:
-      IS_PERSISTENT: "TRUE"
-      PERSIST_DIRECTORY: /chroma/chroma
-      ANONYMIZED_TELEMETRY: "FALSE"
-    volumes:
-      - chroma_server_data:/chroma/chroma
-
 volumes:
   chroma_data:
-  chroma_server_data:
   demo_data:

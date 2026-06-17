@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.6
+  tag: 0.1.7
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -46,16 +46,16 @@ persistence:
       - ReadWriteOnce
 
 llm:
-  baseUrl: https://qwen257b.project-public.serving.hpepcai3.demo.local
-  model: Qwen/Qwen2.5-7B-Instruct
+  baseUrl: ""
+  model: ""
   apiKey: ""
   existingSecret: ""
   existingSecretKey: LLM_API_KEY
   timeoutSeconds: 30
 
 embedding:
-  model: sentence-transformers/all-MiniLM-L6-v2
-  baseUrl: https://all-mini-lm.project-public.serving.hpepcai3.demo.local
+  model: ""
+  baseUrl: ""
   apiKey: ""
   existingSecret: ""
   existingSecretKey: EMBEDDING_API_KEY
@@ -63,7 +63,7 @@ embedding:
 chroma:
   mode: http
   path: /app/chroma_db
-  host: https://chroma-db.hpepcai3.demo.local/
+  host: ""
   port: 443
   ssl: true
   tenant: default_tenant
