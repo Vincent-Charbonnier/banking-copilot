@@ -14,7 +14,6 @@ DATA_DIRS = [
     Path("data/products"),
     Path("data/policies"),
     Path("data/interactions"),
-    Path("chroma_db"),
 ]
 
 

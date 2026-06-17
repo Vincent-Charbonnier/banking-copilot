@@ -3,6 +3,10 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
+ENV XDG_CACHE_HOME=/app/data/cache
+ENV HF_HOME=/app/data/cache/huggingface
+ENV TRANSFORMERS_CACHE=/app/data/cache/huggingface/transformers
+ENV SENTENCE_TRANSFORMERS_HOME=/app/data/cache/sentence-transformers
 
 WORKDIR /app
 

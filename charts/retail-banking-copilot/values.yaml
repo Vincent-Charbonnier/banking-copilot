@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.7
+  tag: 0.1.8
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -38,12 +38,6 @@ persistence:
     storageClassName: ""
     accessModes:
       - ReadWriteOnce
-  chroma:
-    enabled: true
-    size: 5Gi
-    storageClassName: ""
-    accessModes:
-      - ReadWriteOnce
 
 llm:
   baseUrl: ""
@@ -62,7 +56,6 @@ embedding:
 
 chroma:
   mode: http
-  path: /app/chroma_db
   host: ""
   port: 443
   ssl: true
@@ -71,11 +64,12 @@ chroma:
 
 env:
   logLevel: INFO
-  allowLocalLlmFallback: "false"
-  allowLocalChromaFallback: "false"
-  allowLocalEmbeddingFallback: "false"
-  loadPersistedRuntimeSettings: "false"
+  loadPersistedRuntimeSettings: "true"
   runtimeSettingsPath: /app/data/config/runtime_settings.json
+  hfHome: /app/data/cache/huggingface
+  transformersCache: /app/data/cache/huggingface/transformers
+  sentenceTransformersHome: /app/data/cache/sentence-transformers
+  xdgCacheHome: /app/data/cache
   streamlitGatherUsageStats: "false"
   anonymizedTelemetry: "False"
 

@@ -26,13 +26,10 @@ class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "")
     llm_model: str = os.getenv("LLM_MODEL", "")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
-    allow_local_llm_fallback: bool = os.getenv("ALLOW_LOCAL_LLM_FALLBACK", "false").lower() in {"1", "true", "yes"}
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "")
     embedding_base_url: str = os.getenv("EMBEDDING_BASE_URL", "")
     embedding_api_key: str = os.getenv("EMBEDDING_API_KEY", "")
-    allow_local_embedding_fallback: bool = os.getenv("ALLOW_LOCAL_EMBEDDING_FALLBACK", "false").lower() in {"1", "true", "yes"}
-    chroma_mode: Literal["persistent", "http"] = os.getenv("CHROMA_MODE", "http").lower()  # type: ignore[assignment]
-    chroma_path: Path = Path(os.getenv("CHROMA_PATH", "./chroma_db"))
+    chroma_mode: Literal["http"] = "http"
     chroma_host: str = os.getenv("CHROMA_HOST", "")
     chroma_port: int = int(os.getenv("CHROMA_PORT", "443"))
     chroma_ssl: bool = os.getenv("CHROMA_SSL", "true").lower() in {"1", "true", "yes"}
@@ -86,10 +83,7 @@ class Settings:
             self.embedding_base_url = str(payload["embedding_base_url"]).rstrip("/")
         if "embedding_api_key" in payload:
             self.embedding_api_key = str(payload["embedding_api_key"])
-        if payload.get("chroma_mode") in {"persistent", "http"}:
-            self.chroma_mode = str(payload["chroma_mode"])  # type: ignore[assignment]
-        if "chroma_path" in payload:
-            self.chroma_path = Path(str(payload["chroma_path"]))
+        self.chroma_mode = "http"
         if "chroma_host" in payload:
             self.chroma_host = str(payload["chroma_host"])
         if "chroma_port" in payload:
@@ -128,7 +122,6 @@ class Settings:
             "embedding_base_url": self.embedding_base_url,
             "embedding_api_key": self.embedding_api_key,
             "chroma_mode": self.chroma_mode,
-            "chroma_path": str(self.chroma_path),
             "chroma_host": self.chroma_host,
             "chroma_port": self.chroma_port,
             "chroma_ssl": self.chroma_ssl,
@@ -154,7 +147,6 @@ class Settings:
             "embedding_base_url": self.embedding_base_url,
             "embedding_api_key_configured": bool(self.embedding_api_key),
             "chroma_mode": self.chroma_mode,
-            "chroma_path": str(self.chroma_path),
             "chroma_host": self.chroma_host,
             "chroma_port": self.chroma_port,
             "chroma_ssl": self.chroma_ssl,

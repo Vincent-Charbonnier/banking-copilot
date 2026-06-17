@@ -3,25 +3,16 @@
 from __future__ import annotations
 
 import logging
-from functools import lru_cache
 from typing import Any
 
 import chromadb
 import httpx
 from chromadb.config import Settings as ChromaSettings
-from sentence_transformers import SentenceTransformer
 
 from app.config.settings import settings
 from app.models.schemas import RetrievedDocument
 
 logger = logging.getLogger(__name__)
-
-
-@lru_cache(maxsize=1)
-def get_embedding_model() -> SentenceTransformer:
-    """Load the configured sentence-transformers model once per process."""
-    logger.info("Loading embedding model %s", settings.embedding_model)
-    return SentenceTransformer(settings.embedding_model)
 
 
 def _embedding_url() -> str:
@@ -41,46 +32,41 @@ def _remote_embeddings(texts: list[str]) -> list[list[float]]:
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed texts using the configured endpoint and optional local fallback."""
+    """Embed texts using the configured remote OpenAI-compatible endpoint."""
     if not texts:
         return []
 
-    if settings.embedding_base_url:
-        try:
-            logger.info("Embedding %s texts via %s", len(texts), settings.embedding_base_url)
-            return _remote_embeddings(texts)
-        except Exception as exc:
-            if not settings.allow_local_embedding_fallback:
-                raise RuntimeError(f"Remote embedding failed and local fallback is disabled: {exc}") from exc
-            logger.warning("Remote embedding failed, falling back to local sentence-transformers: %s", exc)
+    if not settings.embedding_base_url:
+        raise RuntimeError("Embedding endpoint is not configured. Set it in Settings before indexing or searching.")
 
-    return get_embedding_model().encode(texts, normalize_embeddings=True).tolist()
+    try:
+        logger.info("Embedding %s texts via %s", len(texts), settings.embedding_base_url)
+        return _remote_embeddings(texts)
+    except Exception as exc:
+        raise RuntimeError(f"Remote embedding failed: {exc}") from exc
 
 
 class VectorStore:
     """Small wrapper around ChromaDB collections used by the demo."""
 
     def __init__(self) -> None:
-        if settings.chroma_mode == "http":
-            logger.info(
-                "Connecting to ChromaDB HTTP server at %s:%s ssl=%s",
-                settings.chroma_host,
-                settings.chroma_port,
-                settings.chroma_ssl,
-            )
-            self.client = chromadb.HttpClient(
-                host=settings.chroma_host,
-                port=settings.chroma_port,
-                ssl=settings.chroma_ssl,
-                tenant=settings.chroma_tenant,
-                database=settings.chroma_database,
-                settings=ChromaSettings(anonymized_telemetry=False),
-            )
-            return
+        if settings.chroma_mode != "http":
+            raise RuntimeError("Only remote ChromaDB HTTP mode is supported.")
+        if not settings.chroma_host:
+            raise RuntimeError("ChromaDB endpoint is not configured. Set it in Settings before indexing or searching.")
 
-        logger.info("Using persistent ChromaDB path %s", settings.chroma_path)
-        self.client = chromadb.PersistentClient(
-            path=str(settings.chroma_path),
+        logger.info(
+            "Connecting to ChromaDB HTTP server at %s:%s ssl=%s",
+            settings.chroma_host,
+            settings.chroma_port,
+            settings.chroma_ssl,
+        )
+        self.client = chromadb.HttpClient(
+            host=settings.chroma_host,
+            port=settings.chroma_port,
+            ssl=settings.chroma_ssl,
+            tenant=settings.chroma_tenant,
+            database=settings.chroma_database,
             settings=ChromaSettings(anonymized_telemetry=False),
         )
 

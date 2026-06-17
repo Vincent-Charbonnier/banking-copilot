@@ -55,8 +55,6 @@ spec:
                   key: {{ .Values.llm.existingSecretKey | quote }}
             - name: LLM_TIMEOUT_SECONDS
               value: {{ .Values.llm.timeoutSeconds | quote }}
-            - name: ALLOW_LOCAL_LLM_FALLBACK
-              value: {{ .Values.env.allowLocalLlmFallback | quote }}
             - name: EMBEDDING_MODEL
               value: {{ .Values.embedding.model | quote }}
             - name: EMBEDDING_BASE_URL
@@ -66,12 +64,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "retail-banking-copilot.embeddingSecretName" . }}
                   key: {{ .Values.embedding.existingSecretKey | quote }}
-            - name: ALLOW_LOCAL_EMBEDDING_FALLBACK
-              value: {{ .Values.env.allowLocalEmbeddingFallback | quote }}
             - name: CHROMA_MODE
               value: {{ .Values.chroma.mode | quote }}
-            - name: CHROMA_PATH
-              value: {{ .Values.chroma.path | quote }}
             - name: CHROMA_HOST
               value: {{ .Values.chroma.host | quote }}
             - name: CHROMA_PORT
@@ -82,14 +76,20 @@ spec:
               value: {{ .Values.chroma.tenant | quote }}
             - name: CHROMA_DATABASE
               value: {{ .Values.chroma.database | quote }}
-            - name: ALLOW_LOCAL_CHROMA_FALLBACK
-              value: {{ .Values.env.allowLocalChromaFallback | quote }}
             - name: DATA_PATH
               value: /app/data
             - name: RUNTIME_SETTINGS_PATH
               value: {{ .Values.env.runtimeSettingsPath | quote }}
             - name: LOAD_PERSISTED_RUNTIME_SETTINGS
               value: {{ .Values.env.loadPersistedRuntimeSettings | quote }}
+            - name: HF_HOME
+              value: {{ .Values.env.hfHome | quote }}
+            - name: TRANSFORMERS_CACHE
+              value: {{ .Values.env.transformersCache | quote }}
+            - name: SENTENCE_TRANSFORMERS_HOME
+              value: {{ .Values.env.sentenceTransformersHome | quote }}
+            - name: XDG_CACHE_HOME
+              value: {{ .Values.env.xdgCacheHome | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.env.logLevel | quote }}
             - name: ANONYMIZED_TELEMETRY
@@ -113,10 +113,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
-            {{- if eq .Values.chroma.mode "persistent" }}
-            - name: chroma
-              mountPath: /app/chroma_db
-            {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -164,15 +160,6 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
-        {{- if eq .Values.chroma.mode "persistent" }}
-        - name: chroma
-          {{- if .Values.persistence.chroma.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "retail-banking-copilot.fullname" . }}-chroma
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
-        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

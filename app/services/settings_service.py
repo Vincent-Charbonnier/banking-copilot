@@ -5,11 +5,9 @@ from __future__ import annotations
 import json
 import logging
 import os
-from pathlib import Path
 
 from app.config.settings import settings
 from app.models.schemas import RuntimeSettings, RuntimeSettingsUpdate
-from app.rag.vector_store import get_embedding_model
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +37,6 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     if update.embedding_api_key:
         settings.embedding_api_key = update.embedding_api_key
     settings.chroma_mode = update.chroma_mode
-    settings.chroma_path = Path(update.chroma_path)
     settings.chroma_host = update.chroma_host
     settings.chroma_port = update.chroma_port
     settings.chroma_ssl = update.chroma_ssl
@@ -55,7 +52,6 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     os.environ["EMBEDDING_BASE_URL"] = settings.embedding_base_url
     os.environ["EMBEDDING_API_KEY"] = settings.embedding_api_key
     os.environ["CHROMA_MODE"] = settings.chroma_mode
-    os.environ["CHROMA_PATH"] = str(settings.chroma_path)
     os.environ["CHROMA_HOST"] = settings.chroma_host
     os.environ["CHROMA_PORT"] = str(settings.chroma_port)
     os.environ["CHROMA_SSL"] = str(settings.chroma_ssl).lower()
@@ -63,6 +59,5 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     os.environ["CHROMA_DATABASE"] = settings.chroma_database
     os.environ["LLM_TIMEOUT_SECONDS"] = str(settings.llm_timeout_seconds)
 
-    get_embedding_model.cache_clear()
     persist_runtime_settings()
     return get_runtime_settings()

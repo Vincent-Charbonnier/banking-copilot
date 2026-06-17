@@ -394,24 +394,19 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 type="password",
                 placeholder="Leave blank to keep the current token",
             )
-            chroma_mode = st.segmented_control(
-                "ChromaDB access",
-                options=["persistent", "http"],
-                default=settings["chroma_mode"],
-            ) or settings["chroma_mode"]
-            chroma_path = st.text_input("ChromaDB path", value=settings["chroma_path"], disabled=chroma_mode == "http")
-            chroma_host = st.text_input("ChromaDB endpoint or host", value=settings["chroma_host"], disabled=chroma_mode == "persistent")
+            chroma_mode = "http"
+            st.caption("ChromaDB is remote-only. Leave it blank until your server endpoint is ready.")
+            chroma_host = st.text_input("ChromaDB endpoint or host", value=settings["chroma_host"])
             chroma_port = st.number_input(
                 "ChromaDB port",
                 min_value=1,
                 max_value=65535,
                 value=int(settings["chroma_port"]),
                 step=1,
-                disabled=chroma_mode == "persistent",
             )
-            chroma_ssl = st.checkbox("Use SSL for ChromaDB", value=bool(settings["chroma_ssl"]), disabled=chroma_mode == "persistent")
-            chroma_tenant = st.text_input("ChromaDB tenant", value=settings["chroma_tenant"], disabled=chroma_mode == "persistent")
-            chroma_database = st.text_input("ChromaDB database", value=settings["chroma_database"], disabled=chroma_mode == "persistent")
+            chroma_ssl = st.checkbox("Use SSL for ChromaDB", value=bool(settings["chroma_ssl"]))
+            chroma_tenant = st.text_input("ChromaDB tenant", value=settings["chroma_tenant"])
+            chroma_database = st.text_input("ChromaDB database", value=settings["chroma_database"])
             llm_timeout_seconds = st.number_input(
                 "LLM timeout seconds",
                 min_value=1.0,
@@ -430,7 +425,6 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "embedding_base_url": embedding_base_url,
                 "embedding_api_key": embedding_api_key or None,
                 "chroma_mode": chroma_mode,
-                "chroma_path": chroma_path,
                 "chroma_host": chroma_host,
                 "chroma_port": chroma_port,
                 "chroma_ssl": chroma_ssl,
@@ -454,7 +448,6 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "embedding_base_url": current["embedding_base_url"],
                 "embedding_api_key_configured": current["embedding_api_key_configured"],
                 "chroma_mode": current["chroma_mode"],
-                "chroma_path": current["chroma_path"],
                 "chroma_host": current["chroma_host"],
                 "chroma_port": current["chroma_port"],
                 "chroma_ssl": current["chroma_ssl"],

@@ -99,7 +99,6 @@ def reindex() -> dict[str, str]:
     env = os.environ.copy()
     env.update(
         {
-            "CHROMA_PATH": str(settings.chroma_path),
             "CHROMA_MODE": settings.chroma_mode,
             "CHROMA_HOST": settings.chroma_host,
             "CHROMA_PORT": str(settings.chroma_port),

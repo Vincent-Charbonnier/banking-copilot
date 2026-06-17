@@ -104,8 +104,7 @@ class RuntimeSettings(BaseModel):
     embedding_model: str
     embedding_base_url: str
     embedding_api_key_configured: bool
-    chroma_mode: Literal["persistent", "http"]
-    chroma_path: str
+    chroma_mode: Literal["http"]
     chroma_host: str
     chroma_port: int
     chroma_ssl: bool
@@ -127,11 +126,10 @@ class RuntimeSettingsUpdate(BaseModel):
     embedding_model: str = Field(..., min_length=1)
     embedding_base_url: str = ""
     embedding_api_key: str | None = None
-    chroma_mode: Literal["persistent", "http"] = "http"
-    chroma_path: str = Field(..., min_length=1)
-    chroma_host: str = Field(default="localhost", min_length=1)
-    chroma_port: int = Field(default=8000, gt=0, le=65535)
-    chroma_ssl: bool = False
+    chroma_mode: Literal["http"] = "http"
+    chroma_host: str = ""
+    chroma_port: int = Field(default=443, gt=0, le=65535)
+    chroma_ssl: bool = True
     chroma_tenant: str = Field(default="default_tenant", min_length=1)
     chroma_database: str = Field(default="default_database", min_length=1)
     llm_timeout_seconds: float = Field(default=30, gt=0)

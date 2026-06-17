@@ -11,7 +11,6 @@ Istio endpoint:
   {{ .Values.ezua.virtualService.endpoint }}
 {{- end }}
 
-To use your existing ChromaDB server, install with:
-  --set chroma.mode=http \
-  --set chroma.host=<existing-chromadb-service> \
-  --set chroma.port=8000
+ChromaDB is not required for the pod to start.
+After the UI is available, open Settings, configure the remote ChromaDB endpoint,
+save settings, and run Reindex documents.
