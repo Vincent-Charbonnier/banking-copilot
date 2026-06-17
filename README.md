@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.8`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.9`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -120,7 +120,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.8 \
+  --set image.tag=0.1.9 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -130,7 +130,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.8.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.9.tgz`.
 
 The chart creates:
 
@@ -152,13 +152,16 @@ Environment variables:
 LLM_BASE_URL=
 LLM_MODEL=
 LLM_API_KEY=
+LLM_SSL_VERIFY=true
 EMBEDDING_MODEL=
 EMBEDDING_BASE_URL=
 EMBEDDING_API_KEY=
+EMBEDDING_SSL_VERIFY=true
 CHROMA_MODE=http
 CHROMA_HOST=
 CHROMA_PORT=443
 CHROMA_SSL=true
+CHROMA_SSL_VERIFY=true
 CHROMA_TENANT=default_tenant
 CHROMA_DATABASE=default_database
 DATA_PATH=./data
@@ -173,7 +176,7 @@ API_BASE_URL=http://localhost:8080
 
 The repository does not commit bearer tokens. Set `LLM_API_KEY` and `EMBEDDING_API_KEY` through `.env`, Helm values, existing Kubernetes secrets, or the Settings tab.
 
-ChromaDB is remote-only. The app connects to a ChromaDB server using `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
+ChromaDB is remote-only. The app connects to a ChromaDB server using `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`, `CHROMA_SSL_VERIFY`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
 
 External LLM, ChromaDB, and embeddings are required. The application does not fall back to local LLM responses, local embeddings, or local ChromaDB.
 
@@ -182,6 +185,7 @@ External LLM, ChromaDB, and embeddings are required. The application does not fa
 The Streamlit app also includes a `Settings` tab where you can update these runtime values without rebuilding the container:
 
 - ChromaDB host, port, SSL, tenant, and database
+- TLS certificate verification for LLM, embedding, and ChromaDB endpoints
 - Embedding model
 - Embedding endpoint
 - Embedding token
@@ -189,6 +193,7 @@ The Streamlit app also includes a `Settings` tab where you can update these runt
 - LLM model name
 - LLM token
 - LLM timeout
+- Connection tests for LLM, embeddings, and ChromaDB
 
 Settings changed in the UI are applied to the running FastAPI process and persisted to `RUNTIME_SETTINGS_PATH`. In Docker this defaults to `/app/data/config/runtime_settings.json`, which is stored in the `demo_data` volume. In Helm this path is mounted on the data PVC.
 
@@ -196,7 +201,7 @@ Tokens are saved in that local settings file when you enter them, but they are n
 
 ## HPE Private Cloud AI Deployment Notes
 
-Use vLLM or another OpenAI-compatible inference server inside the private environment and point `LLM_BASE_URL` at its `/v1` endpoint. The model name is configured with `LLM_MODEL`, so the same app can target Qwen, Llama, Mistral, or another internally approved model.
+Use vLLM or another OpenAI-compatible inference server inside the private environment and point `LLM_BASE_URL` at either the service root, its `/v1` endpoint, or a full `/chat/completions` URL. The model name is configured with `LLM_MODEL`, so the same app can target Qwen, Llama, Mistral, or another internally approved model.
 
 For air-gapped deployment, pre-stage Python wheels and any vLLM model weights in the private artifact registry or image build context. The app itself does not require SaaS services at runtime.
 

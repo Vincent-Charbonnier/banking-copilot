@@ -101,13 +101,16 @@ class RuntimeSettings(BaseModel):
     llm_base_url: str
     llm_model: str
     llm_api_key_configured: bool
+    llm_ssl_verify: bool
     embedding_model: str
     embedding_base_url: str
     embedding_api_key_configured: bool
+    embedding_ssl_verify: bool
     chroma_mode: Literal["http"]
     chroma_host: str
     chroma_port: int
     chroma_ssl: bool
+    chroma_ssl_verify: bool
     chroma_tenant: str
     chroma_database: str
     llm_timeout_seconds: float
@@ -123,13 +126,24 @@ class RuntimeSettingsUpdate(BaseModel):
     llm_base_url: str = Field(..., min_length=1)
     llm_model: str = Field(..., min_length=1)
     llm_api_key: str | None = None
+    llm_ssl_verify: bool = True
     embedding_model: str = Field(..., min_length=1)
     embedding_base_url: str = ""
     embedding_api_key: str | None = None
+    embedding_ssl_verify: bool = True
     chroma_mode: Literal["http"] = "http"
     chroma_host: str = ""
     chroma_port: int = Field(default=443, gt=0, le=65535)
     chroma_ssl: bool = True
+    chroma_ssl_verify: bool = True
     chroma_tenant: str = Field(default="default_tenant", min_length=1)
     chroma_database: str = Field(default="default_database", min_length=1)
     llm_timeout_seconds: float = Field(default=30, gt=0)
+
+
+class ConnectionTestResponse(BaseModel):
+    """Connection test result for a configured runtime dependency."""
+
+    service: Literal["llm", "embedding", "chroma"]
+    ok: bool
+    message: str

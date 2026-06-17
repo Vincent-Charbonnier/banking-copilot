@@ -32,14 +32,17 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     settings.llm_model = update.llm_model
     if update.llm_api_key:
         settings.llm_api_key = update.llm_api_key
+    settings.llm_ssl_verify = update.llm_ssl_verify
     settings.embedding_model = update.embedding_model
     settings.embedding_base_url = update.embedding_base_url.rstrip("/")
     if update.embedding_api_key:
         settings.embedding_api_key = update.embedding_api_key
+    settings.embedding_ssl_verify = update.embedding_ssl_verify
     settings.chroma_mode = update.chroma_mode
     settings.chroma_host = update.chroma_host
     settings.chroma_port = update.chroma_port
     settings.chroma_ssl = update.chroma_ssl
+    settings.chroma_ssl_verify = update.chroma_ssl_verify
     settings.chroma_tenant = update.chroma_tenant
     settings.chroma_database = update.chroma_database
     settings.llm_timeout_seconds = update.llm_timeout_seconds
@@ -48,13 +51,16 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     os.environ["LLM_BASE_URL"] = settings.llm_base_url
     os.environ["LLM_MODEL"] = settings.llm_model
     os.environ["LLM_API_KEY"] = settings.llm_api_key
+    os.environ["LLM_SSL_VERIFY"] = str(settings.llm_ssl_verify).lower()
     os.environ["EMBEDDING_MODEL"] = settings.embedding_model
     os.environ["EMBEDDING_BASE_URL"] = settings.embedding_base_url
     os.environ["EMBEDDING_API_KEY"] = settings.embedding_api_key
+    os.environ["EMBEDDING_SSL_VERIFY"] = str(settings.embedding_ssl_verify).lower()
     os.environ["CHROMA_MODE"] = settings.chroma_mode
     os.environ["CHROMA_HOST"] = settings.chroma_host
     os.environ["CHROMA_PORT"] = str(settings.chroma_port)
     os.environ["CHROMA_SSL"] = str(settings.chroma_ssl).lower()
+    os.environ["CHROMA_SSL_VERIFY"] = str(settings.chroma_ssl_verify).lower()
     os.environ["CHROMA_TENANT"] = settings.chroma_tenant
     os.environ["CHROMA_DATABASE"] = settings.chroma_database
     os.environ["LLM_TIMEOUT_SECONDS"] = str(settings.llm_timeout_seconds)

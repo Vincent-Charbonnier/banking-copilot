@@ -35,6 +35,17 @@ def api_put(path: str, payload: dict[str, Any]) -> Any:
     return response.json()
 
 
+def render_connection_test(service: str, label: str) -> None:
+    """Render a test button and status message for one runtime dependency."""
+    if st.button(label, use_container_width=True):
+        with st.spinner(f"Testing {service}"):
+            result = api_post(f"/settings/test/{service}")
+        if result["ok"]:
+            st.success(result["message"])
+        else:
+            st.error(result["message"])
+
+
 def money(value: int | float) -> str:
     """Format a numeric value as EUR."""
     return f"EUR {value:,.0f}"
@@ -386,6 +397,7 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 type="password",
                 placeholder="Leave blank to keep the current token",
             )
+            llm_ssl_verify = st.checkbox("Verify LLM TLS certificate", value=bool(settings["llm_ssl_verify"]))
             embedding_model = st.text_input("Embedding model", value=settings["embedding_model"])
             embedding_base_url = st.text_input("Embedding endpoint", value=settings["embedding_base_url"])
             embedding_api_key = st.text_input(
@@ -393,6 +405,10 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 value="",
                 type="password",
                 placeholder="Leave blank to keep the current token",
+            )
+            embedding_ssl_verify = st.checkbox(
+                "Verify embedding TLS certificate",
+                value=bool(settings["embedding_ssl_verify"]),
             )
             chroma_mode = "http"
             st.caption("ChromaDB is remote-only. Leave it blank until your server endpoint is ready.")
@@ -405,6 +421,7 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 step=1,
             )
             chroma_ssl = st.checkbox("Use SSL for ChromaDB", value=bool(settings["chroma_ssl"]))
+            chroma_ssl_verify = st.checkbox("Verify ChromaDB TLS certificate", value=bool(settings["chroma_ssl_verify"]))
             chroma_tenant = st.text_input("ChromaDB tenant", value=settings["chroma_tenant"])
             chroma_database = st.text_input("ChromaDB database", value=settings["chroma_database"])
             llm_timeout_seconds = st.number_input(
@@ -421,13 +438,16 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "llm_base_url": llm_base_url,
                 "llm_model": llm_model,
                 "llm_api_key": llm_api_key or None,
+                "llm_ssl_verify": llm_ssl_verify,
                 "embedding_model": embedding_model,
                 "embedding_base_url": embedding_base_url,
                 "embedding_api_key": embedding_api_key or None,
+                "embedding_ssl_verify": embedding_ssl_verify,
                 "chroma_mode": chroma_mode,
                 "chroma_host": chroma_host,
                 "chroma_port": chroma_port,
                 "chroma_ssl": chroma_ssl,
+                "chroma_ssl_verify": chroma_ssl_verify,
                 "chroma_tenant": chroma_tenant,
                 "chroma_database": chroma_database,
                 "llm_timeout_seconds": llm_timeout_seconds,
@@ -444,18 +464,31 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "llm_base_url": current["llm_base_url"],
                 "llm_model": current["llm_model"],
                 "llm_api_key_configured": current["llm_api_key_configured"],
+                "llm_ssl_verify": current["llm_ssl_verify"],
                 "embedding_model": current["embedding_model"],
                 "embedding_base_url": current["embedding_base_url"],
                 "embedding_api_key_configured": current["embedding_api_key_configured"],
+                "embedding_ssl_verify": current["embedding_ssl_verify"],
                 "chroma_mode": current["chroma_mode"],
                 "chroma_host": current["chroma_host"],
                 "chroma_port": current["chroma_port"],
                 "chroma_ssl": current["chroma_ssl"],
+                "chroma_ssl_verify": current["chroma_ssl_verify"],
                 "chroma_tenant": current["chroma_tenant"],
                 "chroma_database": current["chroma_database"],
                 "llm_timeout_seconds": current["llm_timeout_seconds"],
             }
         )
+        st.markdown('<div class="section-title">Connection Tests</div>', unsafe_allow_html=True)
+        st.caption("Save settings first, then test the active backend configuration.")
+        test_llm_col, test_embedding_col, test_chroma_col = st.columns(3)
+        with test_llm_col:
+            render_connection_test("llm", "Test LLM")
+        with test_embedding_col:
+            render_connection_test("embedding", "Test embeddings")
+        with test_chroma_col:
+            render_connection_test("chroma", "Test ChromaDB")
+
         st.markdown('<div class="section-title">Index Maintenance</div>', unsafe_allow_html=True)
         if st.button("Reindex documents", use_container_width=True):
             with st.spinner("Rebuilding product and policy indexes"):

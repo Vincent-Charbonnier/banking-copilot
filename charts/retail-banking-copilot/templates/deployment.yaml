@@ -53,6 +53,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "retail-banking-copilot.secretName" . }}
                   key: {{ .Values.llm.existingSecretKey | quote }}
+            - name: LLM_SSL_VERIFY
+              value: {{ .Values.llm.sslVerify | quote }}
             - name: LLM_TIMEOUT_SECONDS
               value: {{ .Values.llm.timeoutSeconds | quote }}
             - name: EMBEDDING_MODEL
@@ -64,6 +66,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "retail-banking-copilot.embeddingSecretName" . }}
                   key: {{ .Values.embedding.existingSecretKey | quote }}
+            - name: EMBEDDING_SSL_VERIFY
+              value: {{ .Values.embedding.sslVerify | quote }}
             - name: CHROMA_MODE
               value: {{ .Values.chroma.mode | quote }}
             - name: CHROMA_HOST
@@ -72,6 +76,8 @@ spec:
               value: {{ .Values.chroma.port | quote }}
             - name: CHROMA_SSL
               value: {{ .Values.chroma.ssl | quote }}
+            - name: CHROMA_SSL_VERIFY
+              value: {{ .Values.chroma.sslVerify | quote }}
             - name: CHROMA_TENANT
               value: {{ .Values.chroma.tenant | quote }}
             - name: CHROMA_DATABASE

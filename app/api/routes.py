@@ -9,17 +9,20 @@ import sys
 
 from fastapi import APIRouter, HTTPException
 
+from app.agent.llm_client import LLMClient
 from app.agent.banking_agent import BankingAgent
 from app.config.settings import settings
 from app.models.schemas import (
     ChatRequest,
     ChatResponse,
+    ConnectionTestResponse,
     Customer,
     HealthResponse,
     Interaction,
     RuntimeSettings,
     RuntimeSettingsUpdate,
 )
+from app.rag.vector_store import VectorStore, embed_texts
 from app.services.customer_service import CustomerService
 from app.services.settings_service import get_runtime_settings, update_runtime_settings
 
@@ -93,6 +96,42 @@ def update_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post("/settings/test/{service}", response_model=ConnectionTestResponse, tags=["settings"])
+def test_connection(service: str) -> ConnectionTestResponse:
+    """Test one configured runtime dependency without changing settings."""
+    try:
+        if service == "llm":
+            response = LLMClient().chat(
+                [
+                    {"role": "system", "content": "Reply with exactly: ok"},
+                    {"role": "user", "content": "connection test"},
+                ]
+            )
+            content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
+            return ConnectionTestResponse(service="llm", ok=True, message=f"LLM responded: {content or 'empty content'}")
+
+        if service == "embedding":
+            embeddings = embed_texts(["Retail banking advisor copilot connection test"])
+            dimensions = len(embeddings[0]) if embeddings else 0
+            return ConnectionTestResponse(
+                service="embedding",
+                ok=True,
+                message=f"Embedding endpoint returned {dimensions} dimensions.",
+            )
+
+        if service == "chroma":
+            heartbeat = VectorStore().client.heartbeat()
+            return ConnectionTestResponse(service="chroma", ok=True, message=f"ChromaDB heartbeat: {heartbeat}")
+
+        raise HTTPException(status_code=404, detail=f"Unknown service: {service}")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning("Connection test failed for %s: %s", service, exc)
+        normalized_service = service if service in {"llm", "embedding", "chroma"} else "chroma"
+        return ConnectionTestResponse(service=normalized_service, ok=False, message=str(exc))
+
+
 @router.post("/reindex", tags=["rag"])
 def reindex() -> dict[str, str]:
     """Rebuild ChromaDB indexes from generated PDF documents."""
@@ -103,11 +142,13 @@ def reindex() -> dict[str, str]:
             "CHROMA_HOST": settings.chroma_host,
             "CHROMA_PORT": str(settings.chroma_port),
             "CHROMA_SSL": str(settings.chroma_ssl).lower(),
+            "CHROMA_SSL_VERIFY": str(settings.chroma_ssl_verify).lower(),
             "CHROMA_TENANT": settings.chroma_tenant,
             "CHROMA_DATABASE": settings.chroma_database,
             "EMBEDDING_MODEL": settings.embedding_model,
             "EMBEDDING_BASE_URL": settings.embedding_base_url,
             "EMBEDDING_API_KEY": settings.embedding_api_key,
+            "EMBEDDING_SSL_VERIFY": str(settings.embedding_ssl_verify).lower(),
             "ANONYMIZED_TELEMETRY": "False",
         }
     )

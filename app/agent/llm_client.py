@@ -12,11 +12,21 @@ from app.config.settings import settings
 logger = logging.getLogger(__name__)
 
 
+def normalize_chat_url(endpoint: str) -> str:
+    """Normalize a model endpoint to an OpenAI-compatible chat completions URL."""
+    endpoint = endpoint.rstrip("/")
+    if endpoint.endswith("/chat/completions"):
+        return endpoint
+    if endpoint.endswith("/v1"):
+        return f"{endpoint}/chat/completions"
+    return f"{endpoint}/v1/chat/completions"
+
+
 class LLMClient:
     """Minimal OpenAI-compatible client for private vLLM deployments."""
 
     def __init__(self) -> None:
-        self.chat_url = f"{settings.llm_base_url.rstrip('/')}/chat/completions"
+        self.chat_url = normalize_chat_url(settings.llm_base_url) if settings.llm_base_url else ""
 
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         """Call the configured chat completions endpoint."""
@@ -34,7 +44,7 @@ class LLMClient:
 
         headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
         try:
-            with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+            with httpx.Client(timeout=settings.llm_timeout_seconds, verify=settings.llm_ssl_verify) as client:
                 response = client.post(self.chat_url, json=payload, headers=headers)
                 response.raise_for_status()
                 return response.json()

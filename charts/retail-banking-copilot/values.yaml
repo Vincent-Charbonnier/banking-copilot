@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.8
+  tag: 0.1.9
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -45,6 +45,7 @@ llm:
   apiKey: ""
   existingSecret: ""
   existingSecretKey: LLM_API_KEY
+  sslVerify: true
   timeoutSeconds: 30
 
 embedding:
@@ -53,12 +54,14 @@ embedding:
   apiKey: ""
   existingSecret: ""
   existingSecretKey: EMBEDDING_API_KEY
+  sslVerify: true
 
 chroma:
   mode: http
   host: ""
   port: 443
   ssl: true
+  sslVerify: true
   tenant: default_tenant
   database: default_database
 

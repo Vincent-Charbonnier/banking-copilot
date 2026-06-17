@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.8
+    image: vinchar/retail-banking-copilot:0.1.9
     platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
@@ -11,13 +11,16 @@ services:
       LLM_BASE_URL: ${LLM_BASE_URL:-}
       LLM_MODEL: ${LLM_MODEL:-}
       LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_SSL_VERIFY: ${LLM_SSL_VERIFY:-true}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_SSL_VERIFY: ${EMBEDDING_SSL_VERIFY:-true}
       CHROMA_MODE: ${CHROMA_MODE:-http}
       CHROMA_HOST: ${CHROMA_HOST:-}
       CHROMA_PORT: ${CHROMA_PORT:-443}
       CHROMA_SSL: ${CHROMA_SSL:-true}
+      CHROMA_SSL_VERIFY: ${CHROMA_SSL_VERIFY:-true}
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
       CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
       DATA_PATH: /app/data
@@ -41,7 +44,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.8
+    image: vinchar/retail-banking-copilot:0.1.9
     platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]

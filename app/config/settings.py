@@ -26,13 +26,16 @@ class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "")
     llm_model: str = os.getenv("LLM_MODEL", "")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
+    llm_ssl_verify: bool = os.getenv("LLM_SSL_VERIFY", "true").lower() in {"1", "true", "yes"}
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "")
     embedding_base_url: str = os.getenv("EMBEDDING_BASE_URL", "")
     embedding_api_key: str = os.getenv("EMBEDDING_API_KEY", "")
+    embedding_ssl_verify: bool = os.getenv("EMBEDDING_SSL_VERIFY", "true").lower() in {"1", "true", "yes"}
     chroma_mode: Literal["http"] = "http"
     chroma_host: str = os.getenv("CHROMA_HOST", "")
     chroma_port: int = int(os.getenv("CHROMA_PORT", "443"))
     chroma_ssl: bool = os.getenv("CHROMA_SSL", "true").lower() in {"1", "true", "yes"}
+    chroma_ssl_verify: bool = os.getenv("CHROMA_SSL_VERIFY", "true").lower() in {"1", "true", "yes"}
     chroma_tenant: str = os.getenv("CHROMA_TENANT", "default_tenant")
     chroma_database: str = os.getenv("CHROMA_DATABASE", "default_database")
     data_path: Path = Path(os.getenv("DATA_PATH", "./data"))
@@ -77,12 +80,16 @@ class Settings:
             self.llm_model = str(payload["llm_model"])
         if "llm_api_key" in payload:
             self.llm_api_key = str(payload["llm_api_key"])
+        if "llm_ssl_verify" in payload:
+            self.llm_ssl_verify = self._parse_bool(payload["llm_ssl_verify"])
         if "embedding_model" in payload:
             self.embedding_model = str(payload["embedding_model"])
         if "embedding_base_url" in payload:
             self.embedding_base_url = str(payload["embedding_base_url"]).rstrip("/")
         if "embedding_api_key" in payload:
             self.embedding_api_key = str(payload["embedding_api_key"])
+        if "embedding_ssl_verify" in payload:
+            self.embedding_ssl_verify = self._parse_bool(payload["embedding_ssl_verify"])
         self.chroma_mode = "http"
         if "chroma_host" in payload:
             self.chroma_host = str(payload["chroma_host"])
@@ -90,6 +97,8 @@ class Settings:
             self.chroma_port = int(payload["chroma_port"])
         if "chroma_ssl" in payload:
             self.chroma_ssl = self._parse_bool(payload["chroma_ssl"])
+        if "chroma_ssl_verify" in payload:
+            self.chroma_ssl_verify = self._parse_bool(payload["chroma_ssl_verify"])
         if "chroma_tenant" in payload:
             self.chroma_tenant = str(payload["chroma_tenant"])
         if "chroma_database" in payload:
@@ -118,13 +127,16 @@ class Settings:
             "llm_base_url": self.llm_base_url,
             "llm_model": self.llm_model,
             "llm_api_key": self.llm_api_key,
+            "llm_ssl_verify": self.llm_ssl_verify,
             "embedding_model": self.embedding_model,
             "embedding_base_url": self.embedding_base_url,
             "embedding_api_key": self.embedding_api_key,
+            "embedding_ssl_verify": self.embedding_ssl_verify,
             "chroma_mode": self.chroma_mode,
             "chroma_host": self.chroma_host,
             "chroma_port": self.chroma_port,
             "chroma_ssl": self.chroma_ssl,
+            "chroma_ssl_verify": self.chroma_ssl_verify,
             "chroma_tenant": self.chroma_tenant,
             "chroma_database": self.chroma_database,
             "llm_timeout_seconds": self.llm_timeout_seconds,
@@ -143,13 +155,16 @@ class Settings:
             "llm_base_url": self.llm_base_url,
             "llm_model": self.llm_model,
             "llm_api_key_configured": bool(self.llm_api_key),
+            "llm_ssl_verify": self.llm_ssl_verify,
             "embedding_model": self.embedding_model,
             "embedding_base_url": self.embedding_base_url,
             "embedding_api_key_configured": bool(self.embedding_api_key),
+            "embedding_ssl_verify": self.embedding_ssl_verify,
             "chroma_mode": self.chroma_mode,
             "chroma_host": self.chroma_host,
             "chroma_port": self.chroma_port,
             "chroma_ssl": self.chroma_ssl,
+            "chroma_ssl_verify": self.chroma_ssl_verify,
             "chroma_tenant": self.chroma_tenant,
             "chroma_database": self.chroma_database,
             "llm_timeout_seconds": self.llm_timeout_seconds,

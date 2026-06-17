@@ -20,18 +20,21 @@ def _embedding_url() -> str:
     return f"{settings.embedding_base_url.rstrip('/')}/embeddings"
 
 
-def _remote_embeddings(texts: list[str]) -> list[list[float]]:
+def _remote_embeddings(texts: list[str], input_type: str) -> list[list[float]]:
     """Call an OpenAI-compatible embeddings endpoint."""
     headers = {"Authorization": f"Bearer {settings.embedding_api_key}"}
-    payload = {"model": settings.embedding_model, "input": texts}
-    with httpx.Client(timeout=settings.llm_timeout_seconds) as client:
+    payload = {"model": settings.embedding_model, "input": texts, "input_type": input_type}
+    with httpx.Client(timeout=settings.llm_timeout_seconds, verify=settings.embedding_ssl_verify) as client:
         response = client.post(_embedding_url(), headers=headers, json=payload)
+        if response.status_code in {400, 422}:
+            payload.pop("input_type", None)
+            response = client.post(_embedding_url(), headers=headers, json=payload)
         response.raise_for_status()
         data = response.json()["data"]
     return [item["embedding"] for item in sorted(data, key=lambda item: item["index"])]
 
 
-def embed_texts(texts: list[str]) -> list[list[float]]:
+def embed_texts(texts: list[str], input_type: str = "passage") -> list[list[float]]:
     """Embed texts using the configured remote OpenAI-compatible endpoint."""
     if not texts:
         return []
@@ -41,7 +44,7 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
     try:
         logger.info("Embedding %s texts via %s", len(texts), settings.embedding_base_url)
-        return _remote_embeddings(texts)
+        return _remote_embeddings(texts, input_type)
     except Exception as exc:
         raise RuntimeError(f"Remote embedding failed: {exc}") from exc
 
@@ -67,7 +70,10 @@ class VectorStore:
             ssl=settings.chroma_ssl,
             tenant=settings.chroma_tenant,
             database=settings.chroma_database,
-            settings=ChromaSettings(anonymized_telemetry=False),
+            settings=ChromaSettings(
+                anonymized_telemetry=False,
+                chroma_server_ssl_verify=settings.chroma_ssl_verify,
+            ),
         )
 
     def get_collection(self, name: str) -> Any:
@@ -94,7 +100,7 @@ class VectorStore:
     def search(self, collection_name: str, query: str, limit: int = 4) -> list[RetrievedDocument]:
         """Search a Chroma collection and return normalized chunks."""
         collection = self.get_collection(collection_name)
-        query_embedding = embed_texts([query])[0]
+        query_embedding = embed_texts([query], input_type="query")[0]
         result: dict[str, Any] = collection.query(
             query_embeddings=[query_embedding],
             n_results=limit,
