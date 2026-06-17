@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.4
+  tag: 0.1.5
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -48,7 +48,7 @@ persistence:
 llm:
   baseUrl: https://qwen257b.project-public.serving.hpepcai3.demo.local
   model: Qwen/Qwen2.5-7B-Instruct
-  apiKey: local
+  apiKey: ""
   existingSecret: ""
   existingSecretKey: LLM_API_KEY
   timeoutSeconds: 30
@@ -63,7 +63,7 @@ embedding:
 chroma:
   mode: http
   path: /app/chroma_db
-  host: chroma-db.hpepcai3.demo.local
+  host: https://chroma-db.hpepcai3.demo.local/
   port: 443
   ssl: true
   tenant: default_tenant

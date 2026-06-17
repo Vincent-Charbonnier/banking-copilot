@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.4`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.5`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -121,7 +121,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.4 \
+  --set image.tag=0.1.5 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -129,13 +129,13 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set embedding.model=sentence-transformers/all-MiniLM-L6-v2 \
   --set embedding.apiKey=YOUR_EMBEDDING_TOKEN \
   --set chroma.mode=http \
-  --set chroma.host=chroma-db.hpepcai3.demo.local \
+  --set chroma.host=https://chroma-db.hpepcai3.demo.local/ \
   --set chroma.port=443 \
   --set chroma.ssl=true \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.4.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.5.tgz`.
 
 The chart creates:
 
@@ -157,13 +157,13 @@ Environment variables:
 ```bash
 LLM_BASE_URL=https://qwen257b.project-public.serving.hpepcai3.demo.local
 LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
-LLM_API_KEY=local
+LLM_API_KEY=
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_BASE_URL=https://all-mini-lm.project-public.serving.hpepcai3.demo.local
 EMBEDDING_API_KEY=
 CHROMA_MODE=http
 CHROMA_PATH=./chroma_db
-CHROMA_HOST=chroma-db.hpepcai3.demo.local
+CHROMA_HOST=https://chroma-db.hpepcai3.demo.local/
 CHROMA_PORT=443
 CHROMA_SSL=true
 CHROMA_TENANT=default_tenant

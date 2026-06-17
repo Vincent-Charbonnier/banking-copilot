@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.4
+    image: vinchar/retail-banking-copilot:0.1.5
     platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
@@ -10,13 +10,13 @@ services:
     environment:
       LLM_BASE_URL: ${LLM_BASE_URL:-https://qwen257b.project-public.serving.hpepcai3.demo.local}
       LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-7B-Instruct}
-      LLM_API_KEY: ${LLM_API_KEY:-local}
+      LLM_API_KEY: ${LLM_API_KEY:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
       EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://all-mini-lm.project-public.serving.hpepcai3.demo.local}
       EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
       CHROMA_MODE: ${CHROMA_MODE:-http}
       CHROMA_PATH: /app/chroma_db
-      CHROMA_HOST: ${CHROMA_HOST:-chroma-db.hpepcai3.demo.local}
+      CHROMA_HOST: ${CHROMA_HOST:-https://chroma-db.hpepcai3.demo.local/}
       CHROMA_PORT: ${CHROMA_PORT:-443}
       CHROMA_SSL: ${CHROMA_SSL:-true}
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
@@ -39,7 +39,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.4
+    image: vinchar/retail-banking-copilot:0.1.5
     platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]

@@ -25,13 +25,13 @@ class Settings:
     app_name: str = "Retail Banking Advisor Copilot"
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://qwen257b.project-public.serving.hpepcai3.demo.local")
     llm_model: str = os.getenv("LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
-    llm_api_key: str = os.getenv("LLM_API_KEY", "local")
+    llm_api_key: str = os.getenv("LLM_API_KEY", "")
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     embedding_base_url: str = os.getenv("EMBEDDING_BASE_URL", "https://all-mini-lm.project-public.serving.hpepcai3.demo.local")
     embedding_api_key: str = os.getenv("EMBEDDING_API_KEY", "")
     chroma_mode: Literal["persistent", "http"] = os.getenv("CHROMA_MODE", "http").lower()  # type: ignore[assignment]
     chroma_path: Path = Path(os.getenv("CHROMA_PATH", "./chroma_db"))
-    chroma_host: str = os.getenv("CHROMA_HOST", "chroma-db.hpepcai3.demo.local")
+    chroma_host: str = os.getenv("CHROMA_HOST", "https://chroma-db.hpepcai3.demo.local/")
     chroma_port: int = int(os.getenv("CHROMA_PORT", "443"))
     chroma_ssl: bool = os.getenv("CHROMA_SSL", "true").lower() in {"1", "true", "yes"}
     chroma_tenant: str = os.getenv("CHROMA_TENANT", "default_tenant")
