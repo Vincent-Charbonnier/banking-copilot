@@ -55,6 +55,8 @@ spec:
                   key: {{ .Values.llm.existingSecretKey | quote }}
             - name: LLM_TIMEOUT_SECONDS
               value: {{ .Values.llm.timeoutSeconds | quote }}
+            - name: ALLOW_LOCAL_LLM_FALLBACK
+              value: {{ .Values.env.allowLocalLlmFallback | quote }}
             - name: EMBEDDING_MODEL
               value: {{ .Values.embedding.model | quote }}
             - name: EMBEDDING_BASE_URL
@@ -64,6 +66,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "retail-banking-copilot.embeddingSecretName" . }}
                   key: {{ .Values.embedding.existingSecretKey | quote }}
+            - name: ALLOW_LOCAL_EMBEDDING_FALLBACK
+              value: {{ .Values.env.allowLocalEmbeddingFallback | quote }}
             - name: CHROMA_MODE
               value: {{ .Values.chroma.mode | quote }}
             - name: CHROMA_PATH
@@ -84,6 +88,8 @@ spec:
               value: /app/data
             - name: RUNTIME_SETTINGS_PATH
               value: {{ .Values.env.runtimeSettingsPath | quote }}
+            - name: LOAD_PERSISTED_RUNTIME_SETTINGS
+              value: {{ .Values.env.loadPersistedRuntimeSettings | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.env.logLevel | quote }}
             - name: ANONYMIZED_TELEMETRY

@@ -41,7 +41,7 @@ def _remote_embeddings(texts: list[str]) -> list[list[float]]:
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    """Embed texts using the configured endpoint, with local fallback."""
+    """Embed texts using the configured endpoint and optional local fallback."""
     if not texts:
         return []
 
@@ -50,6 +50,8 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
             logger.info("Embedding %s texts via %s", len(texts), settings.embedding_base_url)
             return _remote_embeddings(texts)
         except Exception as exc:
+            if not settings.allow_local_embedding_fallback:
+                raise RuntimeError(f"Remote embedding failed and local fallback is disabled: {exc}") from exc
             logger.warning("Remote embedding failed, falling back to local sentence-transformers: %s", exc)
 
     return get_embedding_model().encode(texts, normalize_embeddings=True).tolist()

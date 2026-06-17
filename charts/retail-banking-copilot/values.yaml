@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.5
+  tag: 0.1.6
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -71,7 +71,10 @@ chroma:
 
 env:
   logLevel: INFO
-  allowLocalChromaFallback: "true"
+  allowLocalLlmFallback: "false"
+  allowLocalChromaFallback: "false"
+  allowLocalEmbeddingFallback: "false"
+  loadPersistedRuntimeSettings: "false"
   runtimeSettingsPath: /app/data/config/runtime_settings.json
   streamlitGatherUsageStats: "false"
   anonymizedTelemetry: "False"

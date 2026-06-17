@@ -28,7 +28,7 @@ for _ in range(60):
 raise SystemExit(f"ChromaDB server was not ready: {last_error}")
 PY
   then
-    if [ "${ALLOW_LOCAL_CHROMA_FALLBACK:-true}" = "true" ]; then
+    if [ "${ALLOW_LOCAL_CHROMA_FALLBACK:-false}" = "true" ]; then
       echo "ChromaDB HTTP server unavailable. Falling back to local persistent ChromaDB at ${CHROMA_PATH:-./chroma_db}."
       export CHROMA_MODE=persistent
     else

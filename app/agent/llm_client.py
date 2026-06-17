@@ -19,11 +19,7 @@ class LLMClient:
         self.chat_url = f"{settings.llm_base_url.rstrip('/')}/chat/completions"
 
     def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
-        """Call the configured chat completions endpoint.
-
-        Returns None when the endpoint is unavailable so the demo can use its
-        deterministic local fallback.
-        """
+        """Call the configured chat completions endpoint."""
         payload: dict[str, Any] = {
             "model": settings.llm_model,
             "messages": messages,
@@ -41,4 +37,6 @@ class LLMClient:
                 return response.json()
         except Exception as exc:
             logger.warning("LLM endpoint unavailable at %s: %s", self.chat_url, exc)
+            if not settings.allow_local_llm_fallback:
+                raise RuntimeError(f"LLM endpoint unavailable and local fallback is disabled: {exc}") from exc
             return None

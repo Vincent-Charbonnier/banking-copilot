@@ -21,7 +21,7 @@ Use concise professional language and cite product or policy document names when
 
 
 class BankingAgent:
-    """Simple OpenAI-compatible tool-calling agent with deterministic fallback."""
+    """Simple OpenAI-compatible tool-calling agent."""
 
     def __init__(self) -> None:
         self.tools = BankingTools()

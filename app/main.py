@@ -18,6 +18,6 @@ logging.basicConfig(
 app = FastAPI(
     title=settings.app_name,
     description="Private-environment retail banking advisor copilot demo with RAG and tool calling.",
-    version="0.1.5",
+    version="0.1.6",
 )
 app.include_router(router)

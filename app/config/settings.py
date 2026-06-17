@@ -26,9 +26,11 @@ class Settings:
     llm_base_url: str = os.getenv("LLM_BASE_URL", "https://qwen257b.project-public.serving.hpepcai3.demo.local")
     llm_model: str = os.getenv("LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
+    allow_local_llm_fallback: bool = os.getenv("ALLOW_LOCAL_LLM_FALLBACK", "false").lower() in {"1", "true", "yes"}
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     embedding_base_url: str = os.getenv("EMBEDDING_BASE_URL", "https://all-mini-lm.project-public.serving.hpepcai3.demo.local")
     embedding_api_key: str = os.getenv("EMBEDDING_API_KEY", "")
+    allow_local_embedding_fallback: bool = os.getenv("ALLOW_LOCAL_EMBEDDING_FALLBACK", "false").lower() in {"1", "true", "yes"}
     chroma_mode: Literal["persistent", "http"] = os.getenv("CHROMA_MODE", "http").lower()  # type: ignore[assignment]
     chroma_path: Path = Path(os.getenv("CHROMA_PATH", "./chroma_db"))
     chroma_host: str = os.getenv("CHROMA_HOST", "https://chroma-db.hpepcai3.demo.local/")
@@ -40,6 +42,11 @@ class Settings:
     runtime_settings_path: Path = Path(
         os.getenv("RUNTIME_SETTINGS_PATH", os.getenv("DATA_PATH", "./data") + "/config/runtime_settings.json")
     )
+    load_persisted_runtime_settings_on_startup: bool = os.getenv("LOAD_PERSISTED_RUNTIME_SETTINGS", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     api_base_url: str = os.getenv("API_BASE_URL", "http://localhost:8080")
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
@@ -47,7 +54,8 @@ class Settings:
     def __post_init__(self) -> None:
         """Overlay persisted runtime settings after environment defaults load."""
         self.normalize_chroma_endpoint()
-        self.load_persisted_runtime_settings()
+        if self.load_persisted_runtime_settings_on_startup:
+            self.load_persisted_runtime_settings()
         self.normalize_chroma_endpoint()
 
     def load_persisted_runtime_settings(self) -> None:

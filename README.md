@@ -33,9 +33,7 @@ flowchart TD
 - Policy and compliance lookup with citations
 - Professional follow-up email drafting
 - Deterministic affordability assessment
-- Fully local operation with no authentication, authorization, SSO, RBAC, user management, or external SaaS dependency
-
-If the configured LLM endpoint is unavailable, the backend uses a deterministic fallback response path while still calling the same local tools. This keeps the demo usable in offline environments and makes vLLM optional for first-run validation.
+- Private-environment operation with no authentication, authorization, SSO, RBAC, user management, or external SaaS dependency
 
 ## Project Structure
 
@@ -92,7 +90,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.5`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.6`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -121,7 +119,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.5 \
+  --set image.tag=0.1.6 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -135,7 +133,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.5.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.6.tgz`.
 
 The chart creates:
 
@@ -158,9 +156,11 @@ Environment variables:
 LLM_BASE_URL=https://qwen257b.project-public.serving.hpepcai3.demo.local
 LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 LLM_API_KEY=
+ALLOW_LOCAL_LLM_FALLBACK=false
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_BASE_URL=https://all-mini-lm.project-public.serving.hpepcai3.demo.local
 EMBEDDING_API_KEY=
+ALLOW_LOCAL_EMBEDDING_FALLBACK=false
 CHROMA_MODE=http
 CHROMA_PATH=./chroma_db
 CHROMA_HOST=https://chroma-db.hpepcai3.demo.local/
@@ -168,9 +168,10 @@ CHROMA_PORT=443
 CHROMA_SSL=true
 CHROMA_TENANT=default_tenant
 CHROMA_DATABASE=default_database
-ALLOW_LOCAL_CHROMA_FALLBACK=true
+ALLOW_LOCAL_CHROMA_FALLBACK=false
 DATA_PATH=./data
 RUNTIME_SETTINGS_PATH=./data/config/runtime_settings.json
+LOAD_PERSISTED_RUNTIME_SETTINGS=true
 API_BASE_URL=http://localhost:8080
 ```
 
@@ -181,7 +182,9 @@ ChromaDB can run in two modes:
 - `CHROMA_MODE=persistent`: embedded ChromaDB client writes to `CHROMA_PATH`.
 - `CHROMA_MODE=http`: app connects to a ChromaDB server using `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
 
-External ChromaDB is the default. For local demos, the backend falls back to local persistent ChromaDB when `ALLOW_LOCAL_CHROMA_FALLBACK=true` and the external service is unavailable. Set it to `false` on servers where ChromaDB connectivity should fail fast.
+External LLM, ChromaDB, and embeddings are the server defaults. Helm sets `ALLOW_LOCAL_LLM_FALLBACK=false`, `ALLOW_LOCAL_CHROMA_FALLBACK=false`, and `ALLOW_LOCAL_EMBEDDING_FALLBACK=false`, so server deployments fail fast when remote dependencies are unavailable. Docker Compose sets these flags to `true` for local laptop testing only.
+
+Helm also sets `LOAD_PERSISTED_RUNTIME_SETTINGS=false`, so chart values and Kubernetes secrets remain the source of truth after pod restarts. Docker Compose sets it to `true` for local testing so Settings tab changes survive container restarts.
 
 The compose file also includes an optional separate `chromadb` container exposed on host port `8001` and available to the app as `chromadb:8000`. To use it:
 
