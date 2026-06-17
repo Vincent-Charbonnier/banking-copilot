@@ -17,7 +17,14 @@ class BankingTools:
 
     def __init__(self) -> None:
         self.customers = CustomerService()
-        self.vector_store = VectorStore()
+        self._vector_store: VectorStore | None = None
+
+    @property
+    def vector_store(self) -> VectorStore:
+        """Create the ChromaDB client only when a RAG tool is used."""
+        if self._vector_store is None:
+            self._vector_store = VectorStore()
+        return self._vector_store
 
     def get_customer(self, customer_id: str) -> dict[str, Any]:
         """Return a customer profile as a JSON-serializable dictionary."""
