@@ -31,7 +31,7 @@ from app.rag.vector_store import VectorStore
 last_error = None
 for _ in range(60):
     try:
-        VectorStore().client.heartbeat()
+        VectorStore().heartbeat()
         raise SystemExit(0)
     except Exception as exc:
         last_error = exc

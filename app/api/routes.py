@@ -120,7 +120,7 @@ def test_connection(service: str) -> ConnectionTestResponse:
             )
 
         if service == "chroma":
-            heartbeat = VectorStore().client.heartbeat()
+            heartbeat = VectorStore().heartbeat()
             return ConnectionTestResponse(service="chroma", ok=True, message=f"ChromaDB heartbeat: {heartbeat}")
 
         raise HTTPException(status_code=404, detail=f"Unknown service: {service}")
