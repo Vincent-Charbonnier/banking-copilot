@@ -46,6 +46,7 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     settings.chroma_tenant = update.chroma_tenant
     settings.chroma_database = update.chroma_database
     settings.llm_timeout_seconds = update.llm_timeout_seconds
+    settings.currency = update.currency
     settings.normalize_chroma_endpoint()
 
     os.environ["LLM_BASE_URL"] = settings.llm_base_url
@@ -64,6 +65,7 @@ def update_runtime_settings(update: RuntimeSettingsUpdate) -> RuntimeSettings:
     os.environ["CHROMA_TENANT"] = settings.chroma_tenant
     os.environ["CHROMA_DATABASE"] = settings.chroma_database
     os.environ["LLM_TIMEOUT_SECONDS"] = str(settings.llm_timeout_seconds)
+    os.environ["CURRENCY"] = settings.currency
 
     persist_runtime_settings()
     return get_runtime_settings()

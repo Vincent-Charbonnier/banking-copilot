@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from app.agent.llm_client import LLMClient
+from app.config.settings import settings
 from app.models.schemas import ChatMessage, ChatResponse, RetrievedDocument, ToolCallRecord
 from app.tools.banking_tools import TOOL_DEFINITIONS, BankingTools
 
@@ -17,7 +18,10 @@ logger = logging.getLogger(__name__)
 SYSTEM_PROMPT = """You are Retail Banking Advisor Copilot, an enterprise assistant for retail banking advisors.
 Use tools for customer data, product retrieval, policy retrieval, email drafting, and affordability calculations.
 Ground recommendations in retrieved sources and deterministic affordability results. Do not invent customer data.
-Use concise professional language and cite product or policy document names when relevant."""
+Use concise professional language and cite product or policy document names when relevant.
+For customer summary requests, return a detailed advisor briefing with these Markdown sections:
+Relationship snapshot, Financial position, Existing products, Recent interactions, Risk and suitability notes,
+Opportunities, and Recommended next actions. Use clean bullets and avoid malformed tables."""
 
 
 class BankingAgent:
@@ -69,6 +73,7 @@ class BankingAgent:
     ) -> str | None:
         """Run a bounded OpenAI-compatible tool loop."""
         messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
         if customer_id:
             messages.append({"role": "system", "content": f"Selected customer_id: {customer_id}"})
         messages.extend(item.model_dump() for item in history[-8:])
@@ -182,6 +187,7 @@ class BankingAgent:
             )
 
         messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
         messages.append(
             {
                 "role": "system",
@@ -219,7 +225,7 @@ class BankingAgent:
     @staticmethod
     def _detect_amount(message: str) -> int | None:
         """Extract a requested amount from a user prompt."""
-        match = re.search(r"(?:EUR|\u20ac)?\s*(\d{1,3}(?:[,\s]\d{3})+|\d{4,7})", message, re.IGNORECASE)
+        match = re.search(r"(?:EUR|USD|\u20ac|\$)?\s*(\d{1,3}(?:[,\s]\d{3})+|\d{4,7})", message, re.IGNORECASE)
         if not match:
             return None
         return int(re.sub(r"[,\s]", "", match.group(1)))
@@ -272,7 +278,7 @@ class BankingAgent:
             add(f"What compliance checks should be completed for customer {detected_customer_id}?")
             add(f"Which product alternatives should I discuss with customer {detected_customer_id}?")
         elif is_policy_turn and not is_recommendation_turn:
-            add(f"Customer {detected_customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+            add(f"Customer {detected_customer_id} wants a {settings.currency} 25,000 car loan. What should I recommend?")
             add(f"Is customer {detected_customer_id} likely to qualify based on affordability?")
             add(f"What documents should I request from customer {detected_customer_id}?")
             add(f"Draft a follow-up email for customer {detected_customer_id}.")
@@ -306,7 +312,7 @@ class BankingAgent:
     ) -> None:
         """Add customer-specific questions after the initial profile summary."""
         if not customer:
-            add(f"Customer {customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+            add(f"Customer {customer_id} wants a {settings.currency} 25,000 car loan. What should I recommend?")
             add(f"What policy checks apply before recommending a product to customer {customer_id}?")
             add(f"Draft a follow-up email for customer {customer_id}.")
             return
@@ -318,7 +324,7 @@ class BankingAgent:
         risk_rating = str(customer.get("risk_rating", "medium"))
 
         if "Credit Card" in products and "Auto Loan Plus" not in products:
-            add(f"Customer {customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+            add(f"Customer {customer_id} wants a {settings.currency} 25,000 car loan. What should I recommend?")
         if balance >= 10000 and "Savings Account Premium" not in products:
             add(f"Which savings products fit customer {customer_id}?")
         if not customer.get("mortgage") and salary >= 60000 and age >= 28:

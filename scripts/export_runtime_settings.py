@@ -26,6 +26,7 @@ def main() -> None:
         "CHROMA_TENANT": settings.chroma_tenant,
         "CHROMA_DATABASE": settings.chroma_database,
         "LLM_TIMEOUT_SECONDS": str(settings.llm_timeout_seconds),
+        "CURRENCY": settings.currency,
         "RUNTIME_SETTINGS_PATH": str(settings.runtime_settings_path),
     }
     for key, value in values.items():

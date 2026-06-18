@@ -51,6 +51,24 @@ def list_customers() -> list[Customer]:
     return customer_service.list_customers()
 
 
+@router.post("/customers", response_model=Customer, tags=["customers"])
+def create_customer(customer: Customer) -> Customer:
+    """Create a new fictional customer profile."""
+    try:
+        return customer_service.create_customer(customer)
+    except FileExistsError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Customer creation failed")
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/customers/demo-profile", response_model=Customer, tags=["customers"])
+def generate_demo_customer() -> Customer:
+    """Generate a fictional customer profile for form prefill."""
+    return customer_service.generate_demo_customer()
+
+
 @router.get("/customer/{customer_id}", response_model=Customer, tags=["customers"])
 def get_customer(customer_id: str) -> Customer:
     """Get one fictional customer profile."""
@@ -149,6 +167,7 @@ def reindex() -> dict[str, str]:
             "EMBEDDING_BASE_URL": settings.embedding_base_url,
             "EMBEDDING_API_KEY": settings.embedding_api_key,
             "EMBEDDING_SSL_VERIFY": str(settings.embedding_ssl_verify).lower(),
+            "CURRENCY": settings.currency,
             "ANONYMIZED_TELEMETRY": "False",
         }
     )

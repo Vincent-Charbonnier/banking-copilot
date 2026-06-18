@@ -38,6 +38,9 @@ class Settings:
     chroma_ssl_verify: bool = os.getenv("CHROMA_SSL_VERIFY", "true").lower() in {"1", "true", "yes"}
     chroma_tenant: str = os.getenv("CHROMA_TENANT", "default_tenant")
     chroma_database: str = os.getenv("CHROMA_DATABASE", "default_database")
+    currency: Literal["EUR", "USD"] = (
+        os.getenv("CURRENCY", "EUR") if os.getenv("CURRENCY", "EUR") in {"EUR", "USD"} else "EUR"
+    )
     data_path: Path = Path(os.getenv("DATA_PATH", "./data"))
     runtime_settings_path: Path = Path(
         os.getenv("RUNTIME_SETTINGS_PATH", os.getenv("DATA_PATH", "./data") + "/config/runtime_settings.json")
@@ -105,6 +108,8 @@ class Settings:
             self.chroma_database = str(payload["chroma_database"])
         if "llm_timeout_seconds" in payload:
             self.llm_timeout_seconds = float(payload["llm_timeout_seconds"])
+        if "currency" in payload and str(payload["currency"]) in {"EUR", "USD"}:
+            self.currency = str(payload["currency"])  # type: ignore[assignment]
 
     def normalize_chroma_endpoint(self) -> None:
         """Accept either a Chroma host or a full http(s) URL."""
@@ -140,6 +145,7 @@ class Settings:
             "chroma_tenant": self.chroma_tenant,
             "chroma_database": self.chroma_database,
             "llm_timeout_seconds": self.llm_timeout_seconds,
+            "currency": self.currency,
         }
 
     @staticmethod
@@ -168,6 +174,7 @@ class Settings:
             "chroma_tenant": self.chroma_tenant,
             "chroma_database": self.chroma_database,
             "llm_timeout_seconds": self.llm_timeout_seconds,
+            "currency": self.currency,
         }
 
 

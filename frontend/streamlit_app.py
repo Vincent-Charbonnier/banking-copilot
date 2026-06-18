@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+from datetime import date
 from typing import Any
 
 import requests
@@ -12,6 +14,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
+PRODUCT_OPTIONS = [
+    "Current Account",
+    "Credit Card",
+    "Savings Account Plus",
+    "Savings Account Premium",
+    "Auto Loan Plus",
+    "Auto Loan Premium",
+    "Home Mortgage Standard",
+    "Home Mortgage Premium",
+    "Personal Loan Flex",
+    "Student Loan Advantage",
+]
 
 
 def api_get(path: str) -> Any:
@@ -58,9 +72,9 @@ def render_connection_test(service: str, label: str) -> None:
             st.error(result["message"])
 
 
-def money(value: int | float) -> str:
-    """Format a numeric value as EUR."""
-    return f"EUR {value:,.0f}"
+def money(value: int | float, currency: str) -> str:
+    """Format a numeric value with the configured display currency."""
+    return f"{currency} {value:,.0f}"
 
 
 def inject_css() -> None:
@@ -264,13 +278,59 @@ def empty_response_state() -> dict[str, list[Any]]:
     }
 
 
+def empty_client_form() -> dict[str, Any]:
+    """Return default values for the add-client form."""
+    return {
+        "customer_id": "",
+        "name": "",
+        "age": 35,
+        "salary": 65000,
+        "monthly_expenses": 1800,
+        "risk_rating": "medium",
+        "existing_products": ["Current Account"],
+        "mortgage": False,
+        "account_balance": 12000,
+        "customer_since": date.today().isoformat(),
+    }
+
+
+def normalize_client_form(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize uploaded or generated customer data for Streamlit widgets."""
+    products = payload.get("existing_products", ["Current Account"])
+    if not isinstance(products, list):
+        products = ["Current Account"]
+    selected_products = [product for product in products if product in PRODUCT_OPTIONS] or ["Current Account"]
+    risk_rating = payload.get("risk_rating", "medium")
+    if risk_rating not in {"low", "medium", "high"}:
+        risk_rating = "medium"
+
+    return {
+        "customer_id": str(payload.get("customer_id", "")).zfill(3) if payload.get("customer_id") else "",
+        "name": str(payload.get("name", "")),
+        "age": int(payload.get("age", 35)),
+        "salary": int(payload.get("salary", 65000)),
+        "monthly_expenses": int(payload.get("monthly_expenses", 1800)),
+        "risk_rating": risk_rating,
+        "existing_products": selected_products,
+        "mortgage": bool(payload.get("mortgage", False)),
+        "account_balance": int(payload.get("account_balance", 12000)),
+        "customer_since": str(payload.get("customer_since", date.today().isoformat())),
+    }
+
+
 def render_sidebar_customer(customers: list[dict[str, Any]]) -> dict[str, Any]:
     """Render customer selector and profile details."""
     with st.sidebar:
         st.subheader("Portfolio")
+        selected_id = st.session_state.get("selected_customer_id")
+        selected_index = next(
+            (index for index, item in enumerate(customers) if item["customer_id"] == selected_id),
+            0,
+        )
         selected_customer = st.selectbox(
             "Customer",
             customers,
+            index=selected_index,
             format_func=lambda item: f"{item['customer_id']} - {item['name']}",
         )
         st.divider()
@@ -288,7 +348,7 @@ def render_sidebar_customer(customers: list[dict[str, Any]]) -> dict[str, Any]:
     return selected_customer
 
 
-def render_customer_metrics(customer: dict[str, Any]) -> None:
+def render_customer_metrics(customer: dict[str, Any], currency: str) -> None:
     """Render selected customer summary metrics."""
     risk_class = f"risk-{customer['risk_rating']}"
     st.markdown(
@@ -296,11 +356,11 @@ def render_customer_metrics(customer: dict[str, Any]) -> None:
         <div class="metric-row">
           <div class="metric-card">
             <div class="metric-label">Annual salary</div>
-            <div class="metric-value">{money(customer['salary'])}</div>
+            <div class="metric-value">{money(customer['salary'], currency)}</div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Monthly expenses</div>
-            <div class="metric-value">{money(customer['monthly_expenses'])}</div>
+            <div class="metric-value">{money(customer['monthly_expenses'], currency)}</div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Risk rating</div>
@@ -308,7 +368,7 @@ def render_customer_metrics(customer: dict[str, Any]) -> None:
           </div>
           <div class="metric-card">
             <div class="metric-label">Balance</div>
-            <div class="metric-value">{money(customer['account_balance'])}</div>
+            <div class="metric-value">{money(customer['account_balance'], currency)}</div>
           </div>
         </div>
         """,
@@ -316,7 +376,7 @@ def render_customer_metrics(customer: dict[str, Any]) -> None:
     )
 
 
-def render_prompt_suggestions(customer_id: str) -> None:
+def render_prompt_suggestions(customer_id: str, currency: str) -> None:
     """Render context-aware prompt suggestions."""
     response = st.session_state.last_response
     suggestions = response.get("suggested_questions", [])
@@ -394,7 +454,8 @@ def render_evidence_panel() -> None:
 
 def render_advisor_tab(selected_customer: dict[str, Any]) -> None:
     """Render advisor chat and evidence panels."""
-    render_customer_metrics(selected_customer)
+    currency = st.session_state.runtime_settings.get("currency", "EUR")
+    render_customer_metrics(selected_customer, currency)
 
     pending_prompt = st.session_state.pop("pending_prompt", None)
     if pending_prompt:
@@ -409,10 +470,109 @@ def render_advisor_tab(selected_customer: dict[str, Any]) -> None:
                 st.markdown(item["content"])
 
         render_message_box(selected_customer)
-        render_prompt_suggestions(selected_customer["customer_id"])
+        render_prompt_suggestions(selected_customer["customer_id"], currency)
 
     with evidence_col:
         render_evidence_panel()
+
+
+def render_add_client_tab() -> None:
+    """Render a form for adding a new file-backed customer profile."""
+    if "new_client_form" not in st.session_state:
+        st.session_state.new_client_form = empty_client_form()
+
+    st.markdown('<div class="section-title">Add A New Client</div>', unsafe_allow_html=True)
+    st.caption("Customer profiles are stored as JSON files and are available immediately. ChromaDB reindexing is not required.")
+
+    upload_col, generate_col = st.columns([0.58, 0.42], gap="large")
+    with upload_col:
+        uploaded_file = st.file_uploader("Customer JSON file", type=["json"])
+        if st.button("Load from file", use_container_width=True):
+            if uploaded_file is None:
+                st.warning("Upload a JSON customer file first.")
+            else:
+                try:
+                    payload = json.loads(uploaded_file.getvalue().decode("utf-8"))
+                    st.session_state.new_client_form = normalize_client_form(payload)
+                    st.success("Customer data loaded into the form.")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Could not load customer file: {exc}")
+
+    with generate_col:
+        st.write("")
+        st.write("")
+        if st.button("Generate data", use_container_width=True):
+            generated = api_get("/customers/demo-profile")
+            st.session_state.new_client_form = normalize_client_form(generated)
+            st.success("Demo customer generated.")
+            st.rerun()
+
+    form_state = st.session_state.new_client_form
+    try:
+        customer_since = date.fromisoformat(form_state["customer_since"])
+    except ValueError:
+        customer_since = date.today()
+
+    with st.form("add_client_form"):
+        left, right = st.columns(2, gap="large")
+        with left:
+            customer_id = st.text_input("Customer ID", value=form_state["customer_id"], placeholder="Leave blank to use next ID")
+            name = st.text_input("Name", value=form_state["name"])
+            age = st.number_input("Age", min_value=18, max_value=100, value=int(form_state["age"]), step=1)
+            salary = st.number_input("Annual salary", min_value=0, value=int(form_state["salary"]), step=1000)
+            monthly_expenses = st.number_input(
+                "Monthly expenses",
+                min_value=0,
+                value=int(form_state["monthly_expenses"]),
+                step=100,
+            )
+        with right:
+            risk_rating = st.selectbox(
+                "Risk rating",
+                ["low", "medium", "high"],
+                index=["low", "medium", "high"].index(form_state["risk_rating"]),
+            )
+            existing_products = st.multiselect(
+                "Existing products",
+                PRODUCT_OPTIONS,
+                default=form_state["existing_products"],
+            )
+            mortgage = st.checkbox("Has mortgage", value=bool(form_state["mortgage"]))
+            account_balance = st.number_input(
+                "Account balance",
+                min_value=0,
+                value=int(form_state["account_balance"]),
+                step=500,
+            )
+            customer_since_value = st.date_input("Customer since", value=customer_since)
+
+        submitted = st.form_submit_button("Submit new customer", use_container_width=True)
+
+    if submitted:
+        payload = {
+            "customer_id": customer_id.strip().zfill(3) if customer_id.strip() else api_get("/customers/demo-profile")["customer_id"],
+            "name": name.strip(),
+            "age": int(age),
+            "salary": int(salary),
+            "monthly_expenses": int(monthly_expenses),
+            "risk_rating": risk_rating,
+            "existing_products": existing_products or ["Current Account"],
+            "mortgage": bool(mortgage),
+            "account_balance": int(account_balance),
+            "customer_since": customer_since_value.isoformat(),
+        }
+        try:
+            created = api_post("/customers", payload)
+        except Exception as exc:
+            st.error(f"Could not create customer: {exc}")
+        else:
+            st.session_state.new_client_form = empty_client_form()
+            st.session_state.selected_customer_id = created["customer_id"]
+            st.session_state.messages = []
+            st.session_state.last_response = empty_response_state()
+            st.success(f"Customer {created['customer_id']} added. No document reindexing required.")
+            st.rerun()
 
 
 def render_settings_tab(settings: dict[str, Any]) -> None:
@@ -464,6 +624,11 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 value=float(settings["llm_timeout_seconds"]),
                 step=1.0,
             )
+            currency = st.selectbox(
+                "Display currency",
+                ["EUR", "USD"],
+                index=0 if settings.get("currency", "EUR") == "EUR" else 1,
+            )
             submitted = st.form_submit_button("Save settings", use_container_width=True)
 
         if submitted:
@@ -484,6 +649,7 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "chroma_tenant": chroma_tenant,
                 "chroma_database": chroma_database,
                 "llm_timeout_seconds": llm_timeout_seconds,
+                "currency": currency,
             }
             updated = api_put("/settings", payload)
             st.session_state.runtime_settings = updated
@@ -510,6 +676,7 @@ def render_settings_tab(settings: dict[str, Any]) -> None:
                 "chroma_tenant": current["chroma_tenant"],
                 "chroma_database": current["chroma_database"],
                 "llm_timeout_seconds": current["llm_timeout_seconds"],
+                "currency": current.get("currency", "EUR"),
             }
         )
         st.markdown('<div class="section-title">Connection Tests</div>', unsafe_allow_html=True)
@@ -551,10 +718,13 @@ if st.session_state.get("selected_customer_id") != selected["customer_id"]:
     st.session_state.selected_customer_id = selected["customer_id"]
     st.session_state.messages = []
     st.session_state.last_response = empty_response_state()
-advisor_tab, settings_tab = st.tabs(["Advisor Workspace", "Settings"])
+advisor_tab, add_client_tab, settings_tab = st.tabs(["Advisor Workspace", "Add A New Client", "Settings"])
 
 with advisor_tab:
     render_advisor_tab(selected)
+
+with add_client_tab:
+    render_add_client_tab()
 
 with settings_tab:
     render_settings_tab(st.session_state.runtime_settings)

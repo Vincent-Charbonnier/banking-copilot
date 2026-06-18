@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.15`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.17`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -120,7 +120,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.15 \
+  --set image.tag=0.1.17 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -130,7 +130,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.15.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.17.tgz`.
 
 The chart creates:
 
@@ -172,6 +172,7 @@ TRANSFORMERS_CACHE=./data/cache/huggingface/transformers
 SENTENCE_TRANSFORMERS_HOME=./data/cache/sentence-transformers
 XDG_CACHE_HOME=./data/cache
 API_BASE_URL=http://localhost:8080
+CURRENCY=EUR
 ```
 
 The repository does not commit bearer tokens. Set `LLM_API_KEY` and `EMBEDDING_API_KEY` through `.env`, Helm values, existing Kubernetes secrets, or the Settings tab.
@@ -195,6 +196,7 @@ The Streamlit app also includes a `Settings` tab where you can update these runt
 - LLM model name
 - LLM token
 - LLM timeout
+- Display currency, either EUR or USD
 - Connection tests for LLM, embeddings, and ChromaDB
 
 Settings changed in the UI are applied to the running FastAPI process and persisted to `RUNTIME_SETTINGS_PATH`. In Docker this defaults to `/app/data/config/runtime_settings.json`, which is stored in the `demo_data` volume. In Helm this path is mounted on the data PVC.
@@ -237,6 +239,8 @@ python scripts/ingest_documents.py
 
 - `POST /chat`
 - `GET /customers`
+- `POST /customers`
+- `GET /customers/demo-profile`
 - `GET /customer/{id}`
 - `GET /customer/{id}/interactions`
 - `GET /settings`
@@ -254,4 +258,3 @@ OpenAPI documentation is available at `/docs`.
 - `Draft a follow-up email.`
 - `Summarize recent customer interactions.`
 - `Is this customer likely to qualify for an auto loan?`
-=======

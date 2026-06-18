@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.15
+    image: vinchar/retail-banking-copilot:0.1.17
     platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
@@ -23,6 +23,7 @@ services:
       CHROMA_SSL_VERIFY: ${CHROMA_SSL_VERIFY:-true}
       CHROMA_TENANT: ${CHROMA_TENANT:-default_tenant}
       CHROMA_DATABASE: ${CHROMA_DATABASE:-default_database}
+      CURRENCY: ${CURRENCY:-EUR}
       DATA_PATH: /app/data
       RUNTIME_SETTINGS_PATH: /app/data/config/runtime_settings.json
       LOAD_PERSISTED_RUNTIME_SETTINGS: ${LOAD_PERSISTED_RUNTIME_SETTINGS:-true}
@@ -44,7 +45,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.15
+    image: vinchar/retail-banking-copilot:0.1.17
     platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]

@@ -115,6 +115,7 @@ class RuntimeSettings(BaseModel):
     chroma_tenant: str
     chroma_database: str
     llm_timeout_seconds: float
+    currency: Literal["EUR", "USD"]
 
 
 class RuntimeSettingsUpdate(BaseModel):
@@ -140,6 +141,7 @@ class RuntimeSettingsUpdate(BaseModel):
     chroma_tenant: str = Field(default="default_tenant", min_length=1)
     chroma_database: str = Field(default="default_database", min_length=1)
     llm_timeout_seconds: float = Field(default=30, gt=0)
+    currency: Literal["EUR", "USD"] = "EUR"
 
 
 class ConnectionTestResponse(BaseModel):

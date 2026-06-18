@@ -82,6 +82,8 @@ spec:
               value: {{ .Values.chroma.tenant | quote }}
             - name: CHROMA_DATABASE
               value: {{ .Values.chroma.database | quote }}
+            - name: CURRENCY
+              value: {{ .Values.currency | quote }}
             - name: DATA_PATH
               value: /app/data
             - name: RUNTIME_SETTINGS_PATH

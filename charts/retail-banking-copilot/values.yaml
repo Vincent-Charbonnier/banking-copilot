@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vinchar/retail-banking-copilot
-  tag: 0.1.15
+  tag: 0.1.17
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -64,6 +64,8 @@ chroma:
   sslVerify: true
   tenant: default_tenant
   database: default_database
+
+currency: EUR
 
 env:
   logLevel: INFO

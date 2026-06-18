@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from app.config.settings import settings
 from app.models.schemas import AffordabilityResult
 from app.rag.vector_store import VectorStore
 from app.services.customer_service import CustomerService
@@ -95,8 +96,8 @@ class BankingTools:
             status=status,
             score=score,
             explanation=(
-                f"Estimated monthly payment is EUR {estimated_payment:,.0f}. "
-                f"Disposable monthly income is EUR {disposable_income:,.0f}. "
+                f"Estimated monthly payment is {settings.currency} {estimated_payment:,.0f}. "
+                f"Disposable monthly income is {settings.currency} {disposable_income:,.0f}. "
                 f"Debt service ratio is {debt_service_ratio:.1%}."
             ),
         )
