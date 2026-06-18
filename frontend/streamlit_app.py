@@ -254,6 +254,16 @@ def render_header(settings: dict[str, Any]) -> None:
     )
 
 
+def empty_response_state() -> dict[str, list[Any]]:
+    """Return the default empty assistant response state."""
+    return {
+        "tool_calls": [],
+        "retrieved_documents": [],
+        "sources": [],
+        "suggested_questions": [],
+    }
+
+
 def render_sidebar_customer(customers: list[dict[str, Any]]) -> dict[str, Any]:
     """Render customer selector and profile details."""
     with st.sidebar:
@@ -273,7 +283,7 @@ def render_sidebar_customer(customers: list[dict[str, Any]]) -> dict[str, Any]:
         st.divider()
         if st.button("Clear conversation", use_container_width=True):
             st.session_state.messages = []
-            st.session_state.last_response = {"tool_calls": [], "retrieved_documents": [], "sources": []}
+            st.session_state.last_response = empty_response_state()
             st.rerun()
     return selected_customer
 
@@ -306,19 +316,19 @@ def render_customer_metrics(customer: dict[str, Any]) -> None:
     )
 
 
-def render_prompt_shortcuts(customer_id: str) -> None:
-    """Render workflow prompt shortcuts."""
-    shortcuts = [
-        f"Summarize customer {customer_id}",
-        f"Customer {customer_id} wants a EUR 25,000 car loan. What should I recommend?",
-        "What lending policy applies here?",
-        f"Draft a follow-up email for customer {customer_id}.",
-    ]
-    cols = st.columns(4)
-    for index, shortcut in enumerate(shortcuts):
+def render_prompt_suggestions(customer_id: str) -> None:
+    """Render context-aware prompt suggestions."""
+    response = st.session_state.last_response
+    suggestions = response.get("suggested_questions", [])
+    if not st.session_state.messages or not suggestions:
+        suggestions = [f"Summarize customer {customer_id}"]
+
+    st.markdown('<div class="section-title">Suggested Questions</div>', unsafe_allow_html=True)
+    cols = st.columns(min(len(suggestions), 4))
+    for index, suggestion in enumerate(suggestions[:4]):
         with cols[index]:
-            if st.button(shortcut, use_container_width=True):
-                st.session_state.pending_prompt = shortcut
+            if st.button(suggestion, use_container_width=True):
+                st.session_state.pending_prompt = suggestion
 
 
 def run_chat_prompt(prompt: str, selected_customer: dict[str, Any]) -> None:
@@ -373,7 +383,7 @@ def render_evidence_panel() -> None:
 def render_advisor_tab(selected_customer: dict[str, Any]) -> None:
     """Render advisor chat and evidence panels."""
     render_customer_metrics(selected_customer)
-    render_prompt_shortcuts(selected_customer["customer_id"])
+    render_prompt_suggestions(selected_customer["customer_id"])
 
     chat_col, evidence_col = st.columns([0.64, 0.36], gap="large")
     with chat_col:
@@ -514,7 +524,7 @@ inject_css()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "last_response" not in st.session_state:
-    st.session_state.last_response = {"tool_calls": [], "retrieved_documents": [], "sources": []}
+    st.session_state.last_response = empty_response_state()
 
 try:
     customers = api_get("/customers")
@@ -526,6 +536,10 @@ except Exception as exc:
 
 render_header(st.session_state.runtime_settings)
 selected = render_sidebar_customer(customers)
+if st.session_state.get("selected_customer_id") != selected["customer_id"]:
+    st.session_state.selected_customer_id = selected["customer_id"]
+    st.session_state.messages = []
+    st.session_state.last_response = empty_response_state()
 advisor_tab, settings_tab = st.tabs(["Advisor Workspace", "Settings"])
 
 with advisor_tab:

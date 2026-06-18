@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    image: vinchar/retail-banking-copilot:0.1.13
+    image: vinchar/retail-banking-copilot:0.1.14
     platform: linux/amd64
     container_name: retail-banking-backend
     command: ["./scripts/start_backend.sh"]
@@ -44,7 +44,7 @@ services:
       retries: 20
 
   frontend:
-    image: vinchar/retail-banking-copilot:0.1.13
+    image: vinchar/retail-banking-copilot:0.1.14
     platform: linux/amd64
     container_name: retail-banking-frontend
     command: ["./scripts/start_frontend.sh"]

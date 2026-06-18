@@ -50,11 +50,13 @@ class BankingAgent:
             raise RuntimeError("LLM returned an empty response.")
 
         sources = self._sources_from_documents(retrieved_documents)
+        suggested_questions = self._suggest_questions(message, customer_id, tool_records, retrieved_documents)
         return ChatResponse(
             answer=llm_response,
             tool_calls=tool_records,
             retrieved_documents=retrieved_documents,
             sources=sources,
+            suggested_questions=suggested_questions,
         )
 
     def _run_llm_tool_loop(
@@ -229,6 +231,105 @@ class BankingAgent:
         for item in result:
             if isinstance(item, dict) and {"document_type", "document_name", "chunk"}.issubset(item):
                 retrieved_documents.append(RetrievedDocument.model_validate(item))
+
+    def _suggest_questions(
+        self,
+        message: str,
+        customer_id: str | None,
+        tool_records: list[ToolCallRecord],
+        retrieved_documents: list[RetrievedDocument],
+    ) -> list[str]:
+        """Suggest relevant next advisor prompts for the current conversation state."""
+        detected_customer_id = self._detect_customer_id(message) or customer_id
+        if not detected_customer_id:
+            return ["Select a customer and summarize their profile."]
+
+        lower = message.lower()
+        tool_names = {record.name for record in tool_records}
+        document_types = {document.document_type for document in retrieved_documents}
+        customer = self._load_customer_for_suggestions(detected_customer_id)
+        suggestions: list[str] = []
+
+        def add(question: str) -> None:
+            if question not in suggestions:
+                suggestions.append(question)
+
+        if not tool_names:
+            add(f"Summarize customer {detected_customer_id}")
+
+        is_summary_turn = "summar" in lower or tool_names.issubset({"get_customer", "get_customer_interactions"})
+        is_email_turn = "draft_email" in tool_names or "email" in lower or "follow-up" in lower or "follow up" in lower
+        is_policy_turn = "search_policies" in tool_names or "policy" in lower or "compliance" in lower
+        is_recommendation_turn = (
+            "search_products" in tool_names
+            or "calculate_affordability" in tool_names
+            or any(term in lower for term in ["recommend", "qualify", "loan", "mortgage", "savings", "product"])
+        )
+
+        if is_email_turn:
+            add(f"What are the next best actions for customer {detected_customer_id}?")
+            add(f"Summarize recent customer interactions for customer {detected_customer_id}.")
+            add(f"What compliance checks should be completed for customer {detected_customer_id}?")
+            add(f"Which product alternatives should I discuss with customer {detected_customer_id}?")
+        elif is_policy_turn and not is_recommendation_turn:
+            add(f"Customer {detected_customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+            add(f"Is customer {detected_customer_id} likely to qualify based on affordability?")
+            add(f"What documents should I request from customer {detected_customer_id}?")
+            add(f"Draft a follow-up email for customer {detected_customer_id}.")
+        elif is_recommendation_turn or "product" in document_types or "policy" in document_types:
+            add("What lending policy applies to this recommendation?")
+            add(f"Compare the retrieved product options for customer {detected_customer_id}.")
+            add(f"Draft a follow-up email for customer {detected_customer_id}.")
+            add(f"What documents should I request from customer {detected_customer_id}?")
+        elif is_summary_turn:
+            self._add_profile_driven_suggestions(detected_customer_id, customer, add)
+        else:
+            self._add_profile_driven_suggestions(detected_customer_id, customer, add)
+
+        add(f"Summarize recent customer interactions for customer {detected_customer_id}.")
+        return suggestions[:4]
+
+    def _load_customer_for_suggestions(self, customer_id: str) -> dict[str, Any] | None:
+        """Load customer data for local suggestion ranking without failing chat."""
+        try:
+            customer = self.tools.customers.get_customer(customer_id)
+        except Exception as exc:
+            logger.debug("Could not load customer %s for suggestions: %s", customer_id, exc)
+            return None
+        return customer.model_dump()
+
+    @staticmethod
+    def _add_profile_driven_suggestions(
+        customer_id: str,
+        customer: dict[str, Any] | None,
+        add: Any,
+    ) -> None:
+        """Add customer-specific questions after the initial profile summary."""
+        if not customer:
+            add(f"Customer {customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+            add(f"What policy checks apply before recommending a product to customer {customer_id}?")
+            add(f"Draft a follow-up email for customer {customer_id}.")
+            return
+
+        products = set(customer.get("existing_products", []))
+        salary = int(customer.get("salary", 0))
+        balance = int(customer.get("account_balance", 0))
+        age = int(customer.get("age", 0))
+        risk_rating = str(customer.get("risk_rating", "medium"))
+
+        if "Credit Card" in products and "Auto Loan Plus" not in products:
+            add(f"Customer {customer_id} wants a EUR 25,000 car loan. What should I recommend?")
+        if balance >= 10000 and "Savings Account Premium" not in products:
+            add(f"Which savings products fit customer {customer_id}?")
+        if not customer.get("mortgage") and salary >= 60000 and age >= 28:
+            add(f"Is customer {customer_id} a candidate for a home mortgage conversation?")
+        if risk_rating == "high":
+            add(f"What suitability and compliance checks apply to customer {customer_id}?")
+        else:
+            add(f"Is customer {customer_id} likely to qualify for an auto loan?")
+
+        add(f"What policy checks apply before recommending a product to customer {customer_id}?")
+        add(f"Draft a follow-up email for customer {customer_id}.")
 
     @staticmethod
     def _sources_from_documents(documents: list[RetrievedDocument]) -> list[str]:

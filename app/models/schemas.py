@@ -70,6 +70,7 @@ class ChatResponse(BaseModel):
     tool_calls: list[ToolCallRecord] = Field(default_factory=list)
     retrieved_documents: list[RetrievedDocument] = Field(default_factory=list)
     sources: list[str] = Field(default_factory=list)
+    suggested_questions: list[str] = Field(default_factory=list)
 
 
 class AffordabilityRequest(BaseModel):

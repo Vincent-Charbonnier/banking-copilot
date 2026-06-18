@@ -92,7 +92,7 @@ docker compose up --build
 
 Open the advisor UI at `http://localhost:8501`. FastAPI and OpenAPI docs are available at `http://localhost:8080/docs`.
 
-Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.13`:
+Docker Compose runs the app as two containers using the versioned image tag `vinchar/retail-banking-copilot:0.1.14`:
 
 - `backend`: FastAPI, data generation, Chroma indexing, tools, and agent runtime on port `8080`
 - `frontend`: Streamlit advisor workspace on port `8501`
@@ -120,7 +120,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --namespace banking-demo \
   --create-namespace \
   --set image.repository=vinchar/retail-banking-copilot \
-  --set image.tag=0.1.13 \
+  --set image.tag=0.1.14 \
   --set llm.baseUrl=https://qwen257b.project-public.serving.hpepcai3.demo.local \
   --set llm.model=Qwen/Qwen2.5-7B-Instruct \
   --set llm.apiKey=YOUR_LLM_TOKEN \
@@ -130,7 +130,7 @@ helm upgrade --install retail-banking-copilot charts/retail-banking-copilot \
   --set ezua.virtualService.endpoint=retail-banking-copilot.${DOMAIN_NAME}
 ```
 
-The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.13.tgz`.
+The packaged chart artifact is generated at `dist/retail-banking-copilot-0.1.14.tgz`.
 
 The chart creates:
 
