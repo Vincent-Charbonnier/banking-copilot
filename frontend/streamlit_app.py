@@ -327,28 +327,40 @@ def render_prompt_suggestions(customer_id: str) -> None:
     cols = st.columns(min(len(suggestions), 4))
     for index, suggestion in enumerate(suggestions[:4]):
         with cols[index]:
-            if st.button(suggestion, use_container_width=True):
+            if st.button(suggestion, use_container_width=True, key=f"suggestion_{index}"):
                 st.session_state.pending_prompt = suggestion
+                st.rerun()
 
 
 def run_chat_prompt(prompt: str, selected_customer: dict[str, Any]) -> None:
     """Submit a prompt to the backend and update chat state."""
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    with st.chat_message("assistant"):
-        with st.spinner("Running advisor tools"):
-            response = api_post(
-                "/chat",
-                {
-                    "message": prompt,
-                    "customer_id": selected_customer["customer_id"],
-                    "history": st.session_state.messages[:-1],
-                },
-            )
-        st.markdown(response["answer"])
+    response = api_post(
+        "/chat",
+        {
+            "message": prompt,
+            "customer_id": selected_customer["customer_id"],
+            "history": st.session_state.messages[:-1],
+        },
+    )
     st.session_state.messages.append({"role": "assistant", "content": response["answer"]})
     st.session_state.last_response = response
+
+
+def render_message_box(selected_customer: dict[str, Any]) -> None:
+    """Render the advisor prompt box below the conversation."""
+    with st.form("advisor_prompt_form", clear_on_submit=True):
+        prompt = st.text_area(
+            "Ask the advisor copilot",
+            placeholder="Ask about customer needs, products, policies, affordability, or next steps",
+            height=88,
+            label_visibility="collapsed",
+        )
+        submitted = st.form_submit_button("Send", use_container_width=True)
+    if submitted and prompt.strip():
+        with st.spinner("Running advisor tools"):
+            run_chat_prompt(prompt.strip(), selected_customer)
+        st.rerun()
 
 
 def render_evidence_panel() -> None:
@@ -383,7 +395,11 @@ def render_evidence_panel() -> None:
 def render_advisor_tab(selected_customer: dict[str, Any]) -> None:
     """Render advisor chat and evidence panels."""
     render_customer_metrics(selected_customer)
-    render_prompt_suggestions(selected_customer["customer_id"])
+
+    pending_prompt = st.session_state.pop("pending_prompt", None)
+    if pending_prompt:
+        with st.spinner("Running advisor tools"):
+            run_chat_prompt(pending_prompt, selected_customer)
 
     chat_col, evidence_col = st.columns([0.64, 0.36], gap="large")
     with chat_col:
@@ -392,13 +408,8 @@ def render_advisor_tab(selected_customer: dict[str, Any]) -> None:
             with st.chat_message(item["role"]):
                 st.markdown(item["content"])
 
-        pending_prompt = st.session_state.pop("pending_prompt", None)
-        if pending_prompt:
-            run_chat_prompt(pending_prompt, selected_customer)
-
-        prompt = st.chat_input("Ask about customer needs, products, policies, or next steps")
-        if prompt:
-            run_chat_prompt(prompt, selected_customer)
+        render_message_box(selected_customer)
+        render_prompt_suggestions(selected_customer["customer_id"])
 
     with evidence_col:
         render_evidence_panel()
