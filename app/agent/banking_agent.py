@@ -72,10 +72,27 @@ class BankingAgent:
         retrieved_documents: list[RetrievedDocument],
     ) -> str | None:
         """Run a bounded OpenAI-compatible tool loop."""
-        messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
-        messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
+        # messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        # messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
+        # if customer_id:
+            # messages.append({"role": "system", "content": f"Selected customer_id: {customer_id}"})
+        # messages.extend(item.model_dump() for item in history[-8:])
+        # messages.append({"role": "user", "content": message})
+        system_content = SYSTEM_PROMPT
+
+        context = [
+            f"Configured display currency: {settings.currency}."
+        ]
+
         if customer_id:
-            messages.append({"role": "system", "content": f"Selected customer_id: {customer_id}"})
+            context.append(f"Selected customer_id: {customer_id}")
+
+        system_content += "\n\n" + "\n".join(context)
+
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": system_content}
+        ]
+
         messages.extend(item.model_dump() for item in history[-8:])
         messages.append({"role": "user", "content": message})
 
@@ -186,21 +203,41 @@ class BankingAgent:
                 tool_records,
             )
 
-        messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
-        messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
-        messages.append(
-            {
-                "role": "system",
-                "content": (
-                    "The backend has already executed the available banking tools. "
-                    "Use the JSON context below as grounded evidence. If any tool result contains an error, "
-                    "explain what configuration or indexing step is needed instead of inventing facts.\n\n"
-                    f"{json.dumps(context, default=str)}"
-                ),
-            }
+        # messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        # messages.append({"role": "system", "content": f"Configured display currency: {settings.currency}."})
+        # messages.append(
+            # {
+                # "role": "system",
+                # "content": (
+                    # "The backend has already executed the available banking tools. "
+                    # "Use the JSON context below as grounded evidence. If any tool result contains an error, "
+                    # "explain what configuration or indexing step is needed instead of inventing facts.\n\n"
+                    # f"{json.dumps(context, default=str)}"
+                # ),
+            # }
+        # )
+        # messages.extend(item.model_dump() for item in history[-8:])
+        # messages.append({"role": "user", "content": message})
+        
+        system_content = SYSTEM_PROMPT
+
+        system_content += (
+            f"\n\nConfigured display currency: {settings.currency}."
         )
+
+        system_content += (
+            "\n\nThe backend has already executed the available banking tools. "
+            "Use the JSON context below as grounded evidence for your response. "
+            f"{json.dumps(context, default=str)}"
+        )
+
+        messages = [
+            {"role": "system", "content": system_content}
+        ]
+
         messages.extend(item.model_dump() for item in history[-8:])
-        messages.append({"role": "user", "content": message})
+        messages.append({"role": "user", "content": message})        
+        
         final = self.llm.chat(messages, tools=None)
         return str(final.get("choices", [{}])[0].get("message", {}).get("content") or "").strip() or None
 
