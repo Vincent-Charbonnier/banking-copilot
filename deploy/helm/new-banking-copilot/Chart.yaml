@@ -1,0 +1,6 @@
+apiVersion: v2
+name: new-banking-copilot
+description: A Helm chart for New Banking Copilot with RAG capabilities
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

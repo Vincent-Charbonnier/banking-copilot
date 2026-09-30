@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+    version: {{ .Chart.AppVersion }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        version: {{ .Chart.AppVersion }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: frontend
+          containerPort: 8501
+          protocol: TCP
+        - name: backend
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: LLM_BASE_URL
+          value: {{ .Values.env.llmBaseUrl | quote }}
+        - name: LLM_API_KEY
+          value: {{ .Values.env.llmApiKey | quote }}
+        - name: LLM_MODEL
+          value: {{ .Values.env.llmModel | quote }}
+        - name: EMBEDDING_BASE_URL
+          value: {{ .Values.env.embeddingBaseUrl | quote }}
+        - name: EMBEDDING_API_KEY
+          value: {{ .Values.env.embeddingApiKey | quote }}
+        - name: EMBEDDING_MODEL
+          value: {{ .Values.env.embeddingModel | quote }}
+        - name: CHROMA_HOST
+          value: {{ .Values.env.chromaHost | quote }}
+        - name: CHROMA_PORT
+          value: {{ .Values.env.chromaPort | quote }}
+        - name: CHROMA_SSL
+          value: {{ .Values.env.chromaSsl | quote }}
+        - name: CHROMA_COLLECTION
+          value: {{ .Values.env.chromaCollection | quote }}
+        - name: BACKEND_URL
+          value: {{ .Values.env.backendUrl | quote }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

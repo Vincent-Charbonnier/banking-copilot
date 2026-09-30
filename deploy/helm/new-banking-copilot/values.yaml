@@ -1,0 +1,43 @@
+replicaCount: 1
+
+image:
+  repository: vinchar/new-retail-banking
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  frontendPort: 8501
+  backendPort: 8000
+
+virtualService:
+  enabled: true
+  host: banking-copilot.example.com
+  gateway: istio-system/ezaf-gateway
+
+env:
+  llmBaseUrl: "https://api.openai.com/v1"
+  llmApiKey: "your-llm-api-key-here"
+  llmModel: "gpt-4"
+  embeddingBaseUrl: "https://api.openai.com/v1"
+  embeddingApiKey: "your-embedding-api-key-here"
+  embeddingModel: "text-embedding-ada-002"
+  chromaHost: "your-chromadb-host"
+  chromaPort: "8001"
+  chromaSsl: "false"
+  chromaCollection: "banking_docs"
+  backendUrl: "http://localhost:8000"
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
